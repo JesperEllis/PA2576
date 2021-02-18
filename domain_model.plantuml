@@ -1,0 +1,12 @@
+@startuml Domain model
+Main -- AlgorithmManager
+AlgorithmManager -- "*" Algorithm: contains >
+Main -- ApiRequest
+Main -- DataManager
+DataManager -- DatabaseConnector
+DatabaseConnector <|-- LoadData
+DatabaseConnector <|-- StoreData
+
+
+
+@enduml
