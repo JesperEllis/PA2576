@@ -1,0 +1,20 @@
+@startuml PackageDiagaram
+package "User Interface" as ui
+
+package "Business Logic Layer" as bll{
+    component "Algorithm"
+    component "API"
+    
+} 
+
+database "MySQL" as db{
+    folder "LogInInformation"
+    folder "UserSettings"
+    folder "Recommendations"
+}
+
+ui -- bll: 
+bll -- db: Store/Load Data
+
+
+@enduml
