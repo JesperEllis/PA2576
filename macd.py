@@ -1,13 +1,5 @@
 import yfinance as yf
 
-
-
-# tickers = ["all_tickers"]
-
-
-# data = yf.Ticker("AAPL")
-# print(data.info["fiftyDayAverage"])
-
 class StockData:
     def __init__(self, stock_ticker):
         self.stock_data = yf.Ticker(stock_ticker)
@@ -44,3 +36,6 @@ if __name__ == "__main__":
     std = StockData("AAPL")
     algo_1 = Algo(stock_data=std)
     algo_1.generate_reco()
+
+
+    #####test
