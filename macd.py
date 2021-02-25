@@ -36,3 +36,6 @@ if __name__ == "__main__":
     std = StockData("AAPL")
     algo_1 = Algo(stock_data=std)
     algo_1.generate_reco()
+
+
+    #####test

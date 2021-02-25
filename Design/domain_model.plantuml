@@ -1,16 +1,18 @@
 @startuml Domain model
 
-Main -- AlgorithmManager
+SystemManager -- AlgorithmManager
 AlgorithmManager -- "*" Algorithm: contains >
 Algorithm -- Recommendation: Generates >
-Main -- ApiRequest
-Main -- DataManager
+SystemManager -- ApiRequest
+SystemManager -- DataManager
 DataManager -- DatabaseConnector
 DatabaseConnector <|-- StoreData
 DatabaseConnector <|-- LoadData
 StoreData -- Recommendation: Stores in Database >
-Main -- UserManager
-UserManager --"*" UserSettings
-
-
+SystemManager -- UserManager
+UserManager --"*" User
+User -- UserSettings
+UserManager -- DataManager
+User --"*" Algorithm
+ApiRequest -- DataManager
 @enduml
