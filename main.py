@@ -92,7 +92,7 @@ class ProfileInterface:
     
     def reset_password(self, email):
         self.db_interface.check_mail_existence(email)
-        self.send_mail(email, "reset_pass")
+        self._send_mail(email, "reset_pass")
     
     def _send_mail(self, email, cause):
         "ny som elion kom på"
@@ -195,7 +195,7 @@ class ApiConnector:
 
 if __name__ == "__main__":
     api_key = "PFHGI45JG5C2X5DQ"
-    test = ApiRequest(api_key)
+    test = ApiConnector(api_key)
     #test with Apple stock and 5min interval
     print(test.get_macd("AAPL", "5min"))
 
