@@ -7,7 +7,7 @@
 * Välja en aktie
 * Väla MACD inställningar
 * köra MACD
-* se rekommendation(köp/sälj)
+* se rekommendation(köp/sälj, aktie, pris, bear/bullish)
 
 ### Back-end
 * köra MACD med specifika inställnigar
