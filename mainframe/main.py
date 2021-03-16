@@ -92,7 +92,7 @@ class ProfileInterface:
     
     def reset_password(self, email):
         self.db_interface.check_mail_existence(email)
-        self.send_mail(email, "reset_pass")
+        self._send_mail(email, "reset_pass")
     
     def _send_mail(self, email, cause):
         "ny som elion kom på"
@@ -121,8 +121,8 @@ class RecommendationInterface:
         return self.my_algo_collection[algo_type].get_settings()
     
     def run_algorithm(self, algo_type, settings, stockinfo):
-        self.my_algo_collection[algo_type].create_recommendation(settings, stockinfo)
-        return "result"
+        #self.my_algo_collection[algo_type].create_recommendation(settings, stockinfo)
+        return "Message from backend"
 
 class Algorithm:
     @abstractmethod
@@ -192,11 +192,19 @@ class ApiConnector:
         """"interval: '1min', '5min', '15min', '30min', '60min'"""
         return self.time_app.get_intraday(stock, time_interval)
 
+def setUp():
+    """An initializing setup method, instances all necessary objects for testing with website"""
+    apiConnector = ApiConnector("PFHGI45JG5C2X5DQ")
+    dbConnector = DatabaseConnector("usr", "psw")
+    dbInterface = DatabaseInterface(dbConnector)
+    stockInterface = StockdataInterface(dbInterface, apiConnector)
+    proInter = ProfileInterface(dbInterface)
+    recInter = RecommendationInterface(dbInterface)
+    sysManager = SystemManager(proInter, recInter, stockInterface)
+    return sysManager 
 
 if __name__ == "__main__":
     api_key = "PFHGI45JG5C2X5DQ"
-    test = ApiRequest(api_key)
+    test = ApiConnector(api_key)
     #test with Apple stock and 5min interval
     print(test.get_macd("AAPL", "5min"))
-
-    
