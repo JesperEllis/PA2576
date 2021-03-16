@@ -58,10 +58,10 @@ class DatabaseInterface:
         "get connection, then call apropiate procedure"
         pass
 
-    # def change_password(self, email, new_password):
+    def change_password(self, email, new_password):
         "ny metod som elion kom på"
-    #     "get connection, then call apropiate procedure"
-    #     pass
+        "get connection, then call apropiate procedure"
+        pass
 
     def ping_echo(self):
         "get connection, then call apropiate procedure"
@@ -86,17 +86,17 @@ class ProfileInterface:
         self.db_interface.check_login(email, password)
         self.active_users.append(email)
     
-    # def logout(self, email):
-    #     "kanske borde spara pofile data i detta stadie"
-    #     self.active_users.remove(email)
+    def logout(self, email):
+        "kanske borde spara pofile data i detta stadie"
+        self.active_users.remove(email)
     
     def reset_password(self, email):
         self.db_interface.check_mail_existence(email)
         self.send_mail(email, "reset_pass")
     
-    # def _send_mail(self, email, cause):
-    "ny som elion kom på"
-    #     self.mail_sender.send_email(email, cause)
+    def _send_mail(self, email, cause):
+        "ny som elion kom på"
+        self.mail_sender.send_email(email, cause)
     
     def update_password(self, email, new_pawwsord):
         self.db_interface.change_password(email, new_pawwsord)
