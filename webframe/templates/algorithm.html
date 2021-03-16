@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Stock Fluent Test</title>
+        <title>Stock Fluent | Algorithm</title>
         <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -28,10 +28,22 @@
                   <a class="nav-link" href="{{ url_for('home') }}">Home</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('about') }}">About</a>
+                  <a class="nav-link" href="{{ url_for('algorithm') }}">Algorithm</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
                 </li>
               </ul>
           </nav>
-        <h1>About page</h1>
+          <div class="container-fluid bg-light p-3 pb-5 rounded">
+            <h2 class="mt-5 mb-5">Allmän container för algoritmer</h2>
+            <form class="ml-4" action="" method="get">
+              <p>MACD Settings:</p>
+
+              <input type="text" name="nm">
+              <input type="submit" name="value">
+
+            </form>
+          </div>
     </body>
 </html>
