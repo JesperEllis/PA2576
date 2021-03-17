@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request
-import main2
+import main
 
 app = Flask(__name__)
 
@@ -25,5 +25,5 @@ def recommendation():
     return render_template("recommendation.html")
 
 if __name__ == "__main__":
-    manager = main2.setUp()
+    manager = main.setUp()
     app.run(debug=True)
