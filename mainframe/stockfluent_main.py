@@ -3,9 +3,11 @@ import main
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def home():
     return render_template('home.html')
+
 
 @app.route("/Algorithm/", methods=["POST", "GET"])
 def algorithm():
@@ -16,13 +18,15 @@ def algorithm():
         interface = manager.get_recommendation_interface()
         x = interface.run_algorithm("MACD", interval, stockName)
 
-        return render_template('algorithm.html') + x + " based on " + stockName +" "+ interval
+        return render_template('algorithm.html') + x + " based on " + stockName + " " + interval
     else:
         return render_template('algorithm.html')
+
 
 @app.route("/Recommendations/")
 def recommendation():
     return render_template("recommendation.html")
+
 
 if __name__ == "__main__":
     manager = main.setUp()
