@@ -138,9 +138,10 @@ class RecommendationInterface:
             self.algo_type = MACD()
 
     def run_algorithm(self, algo_type, settings):
+        print(settings)
         result = settings["result"]
         rec = 0
-        while rec <= 10:
+        while rec <= 1:
             MACD_stockinfo = self.db_interface.get_macd(
                 result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
             stock_info = self.db_interface.get_intraday(
@@ -148,6 +149,7 @@ class RecommendationInterface:
             self._create_algo(algo_type)
             self.algo_type.create_recommendation(
                 settings, MACD_stockinfo, stock_info)
+            return "Message from backend (inside run_algorithm)"
             time.sleep(60)
             rec += 1
         #self.my_algo_collection[algo_type].create_recommendation(settings, stockinfo)
@@ -204,17 +206,24 @@ class MACD(Algorithm):
         If the Histogram is positive it is bull market and
         if negative it is bear market'''
 
+        print(MACD_Hist, MACD_HistErlier)
+
         if MACD_Hist > 0 and (MACD_Hist and MACD_HistErlier > 0):
+            print("Bullich print")
             self.recommendation.bull(self.date1, self.stockPrice)
 
         elif MACD_Hist < 0 and (MACD_Hist and MACD_HistErlier < 0):
+            print("Bearich print")
             self.recommendation.bear(self.date1, self.stockPrice)
 
         elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
+            print("Sell print")
             self.recommendation.sell(self.date1, self.stockPrice)
 
         elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
+            print("Buy print")
             self.recommendation.buy(self.date1, self.stockPrice)
+        
 
 
 class Recommendation:
@@ -290,7 +299,7 @@ def setUp():
     dbInterface = DatabaseInterface(dbConnector)
     stockInterface = StockdataInterface(dbInterface, apiConnector)
     proInter = ProfileInterface(dbInterface)
-    recInter = RecommendationInterface(dbInterface)
+    recInter = RecommendationInterface(apiConnector)
     sysManager = SystemManager(proInter, recInter, stockInterface)
     return sysManager
 
