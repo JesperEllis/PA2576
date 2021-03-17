@@ -16,7 +16,7 @@ def algorithm():
         interface = manager.get_recommendation_interface()
         x = interface.run_algorithm("MACD", interval, stockName)
 
-        return render_template('algorithm.html') + x
+        return render_template('algorithm.html') + x + " based on " + stockName +" "+ interval
     else:
         return render_template('algorithm.html')
 
