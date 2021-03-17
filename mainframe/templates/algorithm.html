@@ -37,13 +37,33 @@
           </nav>
           <div class="container-fluid bg-light p-3 pb-5 rounded">
             <h2 class="mt-5 mb-5">Allmän container för algoritmer</h2>
-            <form class="ml-4" action="" method="get">
-              <p>MACD Settings:</p>
+            <form class="ml-4" action="" method="GET">
+              <h5>Available stock:</h5>
+              <label for="stockID">Stock</label>
+              <select id="stockID" name="stockID">
+                <option value="AAPL">Apple Inc.</option>
+                <option value="TSLA">Tesla Inc.</option>
+                <option value="AMZN">Amazon</option>
+                <option value="GOOGL">Google</option>
+              </select>
 
-              <input type="text" name="nm">
-              <input type="submit" name="value">
+              <br><h5>MACD Intervals:</h5>
+              <label for="interval">Intervals</label>
+              <select id="interval" name="interval">
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="daily">Daily</option>
+                <option value="60min">60 minutes</option>
+                <option value="30min">30 minutes</option>
+                <option value="15min">15 minutes</option>
+                <option value="5min">5 minutes</option>
+                <option value="1min">1 minute</option>
+              </select>
+
+              <br><input class="mt-2" type="submit" name="value">
 
             </form>
+          
           </div>
     </body>
 </html>
