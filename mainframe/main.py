@@ -58,6 +58,7 @@ class DatabaseInterface:
 
     def set_recommendation(self, recommendation):
         "get connection, then call apropiate procedure"
+        print(recommendation)
         pass
 
     def check_mail_existence(self, email):
@@ -122,8 +123,9 @@ class MailSender:
 
 
 class RecommendationInterface:
-    def __init__(self, databaseInterface):
+    def __init__(self, API, databaseInterface):
         self.db_interface = databaseInterface
+        self.API = API
         self.my_algo_collection = {
             "MACD": ["stock, interval, fastperiod, slowperiod, signalperiod"]}
 
@@ -142,14 +144,14 @@ class RecommendationInterface:
         result = settings["result"]
         rec = 0
         while rec <= 1:
-            MACD_stockinfo = self.db_interface.get_macd(
+            MACD_stockinfo = self.API.get_macd(
                 result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
-            stock_info = self.db_interface.get_intraday(
+            stock_info = self.API.get_intraday(
                 result["stock"], result["interval"])
             self._create_algo(algo_type)
-            self.algo_type.create_recommendation(
+            recomendation = self.algo_type.create_recommendation(
                 settings, MACD_stockinfo, stock_info)
-            return "Message from backend (inside run_algorithm)"
+            self.db_interface.set_recommendation(recomendation)
             time.sleep(60)
             rec += 1
         #self.my_algo_collection[algo_type].create_recommendation(settings, stockinfo)
@@ -176,13 +178,13 @@ class MACD(Algorithm):
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
         self.MACD_Hist = None
         self.MACD_HistErlier = None
-        self.recommendation = Recommendation("apple", 2, "buy")
-        self.possibel_settings = []
 
     def create_recommendation(self, settings, MACD_stock_info, stock_info):
         # runs the algorithm.
         self._unpackData(MACD_stock_info, stock_info)
-        self._recomendationLogic(self.MACD_Hist, self.MACD_HistErlier)
+        recomendation = self._recomendationLogic(
+            self.MACD_Hist, self.MACD_HistErlier, settings)
+        return recomendation
 
     def _unpackData(self, MACD_stock_info, stock_info):
         # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
@@ -200,52 +202,42 @@ class MACD(Algorithm):
         self.MACD_HistErlier = float(self.macd_dateInfoErlier["MACD_Hist"])
         self.stockPrice = float(stock_info[0][self.date1]["4. close"])
 
-    def _recomendationLogic(self, MACD_Hist, MACD_HistErlier):
+    def _recomendationLogic(self, MACD_Hist, MACD_HistErlier, settings):
         '''The lodgic behind the recomendations. If the Histogram
         is 0 it is time to buy or sell,
         If the Histogram is positive it is bull market and
         if negative it is bear market'''
 
-        print(MACD_Hist, MACD_HistErlier)
-
         if MACD_Hist > 0 and (MACD_Hist and MACD_HistErlier > 0):
-            print("Bullich print")
-            self.recommendation.bull(self.date1, self.stockPrice)
+            rec = Recommendation(
+                "Bullich", self.stockPrice, self.date1, settings)
+            return rec.get_recomendation_info()
 
         elif MACD_Hist < 0 and (MACD_Hist and MACD_HistErlier < 0):
             print("Bearich print")
-            self.recommendation.bear(self.date1, self.stockPrice)
+            rec = Recommendation(
+                "Bearich", self.stockPrice, self.date1, settings)
+            return rec.get_recomendation_info()
 
-        elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
-            print("Sell print")
-            self.recommendation.sell(self.date1, self.stockPrice)
+        elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
+            rec = Recommendation("Sell", self.stockPrice, self.date1, settings)
+            return rec.get_recomendation_info()
 
-        elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
-            print("Buy print")
-            self.recommendation.buy(self.date1, self.stockPrice)
-        
+        elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
+            rec = Recommendation("Buy", self.stockPrice, self.date1, settings)
+            return rec.get_recomendation_info()
 
 
 class Recommendation:
     # prints recomendations
-    def __init__(self, stock_name, stock_price, recommendation):
-        self.recommendation = recommendation
-        self.stock_name = stock_name
+    def __init__(self, recAction, stock_price, stock_date, settings):
+        self.recAction = recAction
         self.stock_price = stock_price
+        self.stock_date = stock_date
+        self.settings = settings
 
-    def bull(self, date, stockPrice):
-        print(
-            f"The market is Bullich stockprice: {stockPrice} time: {date} USA time")
-
-    def bear(self, date, stockPrice):
-        print(
-            f"The market is bearich stockprice: {stockPrice} time: {date} USA time")
-
-    def sell(self, date, stockPrice):
-        print(f"time to sell stockprice: {stockPrice} time: {date} USA time")
-
-    def buy(self, date, stockPrice):
-        print(f"time to buy stockprice: {stockPrice} time: {date} USA time")
+    def get_recomendation_info(self):
+        return{"recAction": self.recAction, "price": self.stock_date, "settings": self.settings, "date": self.stock_date}
 
 
 # StockdataCollector
@@ -299,7 +291,7 @@ def setUp():
     dbInterface = DatabaseInterface(dbConnector)
     stockInterface = StockdataInterface(dbInterface, apiConnector)
     proInter = ProfileInterface(dbInterface)
-    recInter = RecommendationInterface(apiConnector)
+    recInter = RecommendationInterface(apiConnector, dbInterface)
     sysManager = SystemManager(proInter, recInter, stockInterface)
     return sysManager
 
@@ -309,6 +301,8 @@ if __name__ == "__main__":
     test = ApiConnector(api_key)
     # test with Apple stock and 5min interval
     # print(test.get_macd("AAPL", "5min"))
-    test2 = RecommendationInterface(ApiConnector(api_key))
+    dbConnector = DatabaseConnector("usr", "psw")
+    databaseInterface = DatabaseInterface(dbConnector)
+    test2 = RecommendationInterface(ApiConnector(api_key), databaseInterface)
     test2.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
                                             "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
