@@ -5,7 +5,9 @@ from alpha_vantage.techindicators import TechIndicators
 import datetime as d
 import time
 import pytz
-
+from os import path
+import mysql.connector as mysql
+from sshtunnel import SSHTunnelForwarder
 
 class SystemManager:
     def __init__(self, prointer, recointer, stointer):
@@ -52,14 +54,12 @@ class DatabaseInterface:
         "get connection, then call apropiate procedure"
         pass
 
-    def get_recommendations(self, stock_name):
-        "get connection, then call apropiate procedure"
-        pass
+    def get_recommendations(self, stockId, interval):
+        return data_handler('getRecommendation', [stockId, interval])
 
     def set_recommendation(self, recommendation):
+        data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"], recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
         "get connection, then call apropiate procedure"
-        print(recommendation)
-        pass
 
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
@@ -77,8 +77,42 @@ class DatabaseInterface:
 
 class DatabaseConnector:
     def __init__(self, username, password):
-        self.username = username
-        self.password = password
+        SSH_USER = 'jeeu18' #ACRONYM
+        SSH_PASS = 'ForTheDatabase123' #CANVAS_PASS
+ 
+        MYSQL_USER =  SSH_USER #ACRONYM
+        MYSQL_PASS = 'CZEf69snXtUA' #MYSQL_PASS
+        MYSQL_DATABASE = SSH_USER #ACRONYM
+
+
+
+    def data_handler(self, func, arg=None):
+        filtered_prod = 0 
+        with SSHTunnelForwarder(
+                ('ssh.student.bth.se', 22),
+                ssh_username=self.SSH_USER,
+                ssh_password=self.SSH_PASS,
+                remote_bind_address=('blu-ray.student.bth.se', 3306)
+        ) as tunnel:
+            connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
+                passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE,
+                port=tunnel.local_bind_port)
+
+            cnx = connection.cursor(dictionary=True)
+
+            if arg == None:
+                cnx.callproc(func)
+
+            else:
+                cnx.callproc(func, arg)
+
+            for row in cnx.stored_results():
+                filtered_prod = row.fetchall()
+            connection.commit()
+            connection.close()
+
+            return filtered_prod
+
 
 # Profile component
 
