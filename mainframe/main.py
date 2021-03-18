@@ -9,6 +9,7 @@ from os import path
 import mysql.connector as mysql
 from sshtunnel import SSHTunnelForwarder
 
+
 class SystemManager:
     def __init__(self, prointer, recointer, stointer):
         self.profileinter = prointer
@@ -55,10 +56,13 @@ class DatabaseInterface:
         pass
 
     def get_recommendations(self, stockId, interval):
-        return data_handler('getRecommendation', [stockId, interval])
+        return self.connector.data_handler('getRecommendation', [stockId, interval])
 
     def set_recommendation(self, recommendation):
-        data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"], recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
+        print(recommendation)
+        self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
+                                                             recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
+        print("Set_recommendation")
         "get connection, then call apropiate procedure"
 
     def check_mail_existence(self, email):
@@ -77,17 +81,15 @@ class DatabaseInterface:
 
 class DatabaseConnector:
     def __init__(self, username, password):
-        SSH_USER = 'jeeu18' #ACRONYM
-        SSH_PASS = 'ForTheDatabase123' #CANVAS_PASS
- 
-        MYSQL_USER =  SSH_USER #ACRONYM
-        MYSQL_PASS = 'CZEf69snXtUA' #MYSQL_PASS
-        MYSQL_DATABASE = SSH_USER #ACRONYM
+        self.SSH_USER = 'jeeu18'  # ACRONYM
+        self.SSH_PASS = 'ForTheDatabase123'  # CANVAS_PASS
 
-
+        self.MYSQL_USER = self.SSH_USER  # ACRONYM
+        self.MYSQL_PASS = 'CZEf69snXtUA'  # MYSQL_PASS
+        self.MYSQL_DATABASE = self.SSH_USER  # ACRONYM
 
     def data_handler(self, func, arg=None):
-        filtered_prod = 0 
+        filtered_prod = 0
         with SSHTunnelForwarder(
                 ('ssh.student.bth.se', 22),
                 ssh_username=self.SSH_USER,
@@ -95,9 +97,9 @@ class DatabaseConnector:
                 remote_bind_address=('blu-ray.student.bth.se', 3306)
         ) as tunnel:
             connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
-                passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE,
-                port=tunnel.local_bind_port)
-
+                                       passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE,
+                                       port=tunnel.local_bind_port)
+            print("Sent_function")
             cnx = connection.cursor(dictionary=True)
 
             if arg == None:
@@ -224,7 +226,7 @@ class MACD(Algorithm):
         # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
         self.macdData = MACD_stock_info
         self.date = d.datetime.today()
-        self.date -= d.timedelta(hours=5)
+        self.date -= d.timedelta(hours=2)
         self.date -= d.timedelta(days=1)
         self.dateErlier = self.date - d.timedelta(minutes=1)
         self.date1 = self.date.strftime('%Y-%m-%d %H:%M:00')
@@ -248,7 +250,6 @@ class MACD(Algorithm):
             return rec.get_recomendation_info()
 
         elif MACD_Hist < 0 and (MACD_Hist and MACD_HistErlier < 0):
-            print("Bearich print")
             rec = Recommendation(
                 "Bearich", self.stockPrice, self.date1, settings)
             return rec.get_recomendation_info()
@@ -271,7 +272,7 @@ class Recommendation:
         self.settings = settings
 
     def get_recomendation_info(self):
-        return{"recAction": self.recAction, "price": self.stock_date, "settings": self.settings, "date": self.stock_date}
+        return{"recAction": self.recAction, "price": self.stock_price, "settings": self.settings, "date": self.stock_date}
 
 
 # StockdataCollector
