@@ -89,6 +89,7 @@ class DatabaseConnector:
         self.MYSQL_DATABASE = self.SSH_USER  # ACRONYM
 
     def data_handler(self, func, arg=None):
+        print(self.SSH_USER)
         filtered_prod = 0
         with SSHTunnelForwarder(
                 ('ssh.student.bth.se', 22),
@@ -97,8 +98,7 @@ class DatabaseConnector:
                 remote_bind_address=('blu-ray.student.bth.se', 3306)
         ) as tunnel:
             connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
-                                       passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE,
-                                       port=tunnel.local_bind_port)
+                                       passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
             print("Sent_function")
             cnx = connection.cursor(dictionary=True)
 
