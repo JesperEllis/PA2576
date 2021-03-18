@@ -179,6 +179,7 @@ class RecommendationInterface:
         print(settings)
         result = settings["result"]
         rec = 0
+        return "Worked!"
         while rec <= 1:
             MACD_stockinfo = self.API.get_macd(
                 result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
