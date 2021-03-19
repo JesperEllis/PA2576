@@ -33,6 +33,14 @@ class DatabaseInterface:
         self.connector = dbconnector
 
     def create_user(self, email, password):
+        myconn = mysql.connect(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas") #Ansluter till databasen
+        cur = myconn.cursor() # det är en cursor, pekare av något slag
+        sql = "insert into user (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
+        val = (email, password) #Det som hamnar i %s och %s
+        cur.execute(sql, val) #Execute, slår ihop SQL och val och får en komplett query
+        myconn.commit() # lägger in det i databasen
+        myconn.close()
+
         pass
 
     def check_login(self, username, password):
