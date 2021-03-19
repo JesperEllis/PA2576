@@ -186,8 +186,8 @@ class RecommendationInterface:
         stock_price = formatted_list[2]
         date = formatted_list[3]
         settings = formatted_list[4]
-        algo_to_run = self._create_algo(algo_type)
-        algo_to_run.recommendationLogic(macd_hist, macd_hist_erlier, stock_price, date, settings)
+        self._create_algo(algo_type)
+        self.algo_type.recommendationLogic(macd_hist, macd_hist_erlier, stock_price, date, settings)
         return "Message from backend"
 
 
@@ -310,7 +310,7 @@ class DataFormater:
         macdData = MACD_stock_info
         date = d.datetime.today()
         #felhantering
-        date -= d.timedelta(hours=5)
+        date -= d.timedelta(hours=1)
         date -= d.timedelta(days=1)
         dateErlier = date - d.timedelta(minutes=1) #in parameter tids intervall
         date1 = date.strftime('%Y-%m-%d %H:%M:00')
@@ -331,7 +331,7 @@ def setUp():
     dbInterface = DatabaseInterface(dbConnector)
     stockInterface = StockdataInterface(dbInterface, apiConnector)
     proInter = ProfileInterface(dbInterface)
-    recInter = RecommendationInterface(apiConnector, dbInterface)
+    recInter = RecommendationInterface(dbInterface, stockInterface)
     sysManager = SystemManager(proInter, recInter, stockInterface)
     return sysManager
 
