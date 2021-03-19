@@ -211,7 +211,6 @@ class MACD(Algorithm):
     def __init__(self):
         super().__init__(self)
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
-
         self.recommendation = Recommendation("apple", 2, "buy")
 
     def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date1, settings):
