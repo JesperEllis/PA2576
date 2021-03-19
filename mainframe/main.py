@@ -5,6 +5,9 @@ from alpha_vantage.techindicators import TechIndicators
 import datetime as d
 import time
 import pytz
+from os import path
+import mysql.connector as mysql
+from sshtunnel import SSHTunnelForwarder
 
 
 class SystemManager:
@@ -52,13 +55,15 @@ class DatabaseInterface:
         "get connection, then call apropiate procedure"
         pass
 
-    def get_recommendations(self, stock_name):
-        "get connection, then call apropiate procedure"
-        pass
+    def get_recommendations(self, stockId, interval):
+        return self.connector.data_handler('getRecommendation', [stockId, interval])
 
     def set_recommendation(self, recommendation):
+        print(recommendation)
+        self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
+                                                             recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
+        print("Set_recommendation")
         "get connection, then call apropiate procedure"
-        pass
 
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
@@ -76,8 +81,40 @@ class DatabaseInterface:
 
 class DatabaseConnector:
     def __init__(self, username, password):
-        self.username = username
-        self.password = password
+        self.SSH_USER = 'jeeu18'  # ACRONYM
+        self.SSH_PASS = 'ForTheDatabase123'  # CANVAS_PASS
+
+        self.MYSQL_USER = self.SSH_USER  # ACRONYM
+        self.MYSQL_PASS = 'CZEf69snXtUA'  # MYSQL_PASS
+        self.MYSQL_DATABASE = self.SSH_USER  # ACRONYM
+
+    def data_handler(self, func, arg=None):
+        print(self.SSH_USER)
+        filtered_prod = 0
+        with SSHTunnelForwarder(
+                ('ssh.student.bth.se', 22),
+                ssh_username=self.SSH_USER,
+                ssh_password=self.SSH_PASS,
+                remote_bind_address=('blu-ray.student.bth.se', 3306)
+        ) as tunnel:
+            connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
+                                       passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
+            print("Sent_function")
+            cnx = connection.cursor(dictionary=True)
+
+            if arg == None:
+                cnx.callproc(func)
+
+            else:
+                cnx.callproc(func, arg)
+
+            for row in cnx.stored_results():
+                filtered_prod = row.fetchall()
+            connection.commit()
+            connection.close()
+
+            return filtered_prod
+
 
 # Profile component
 
@@ -122,7 +159,9 @@ class MailSender:
 
 
 class RecommendationInterface:
+
     def __init__(self, databaseInterface, stockdataInterface):
+
         self.db_interface = databaseInterface
         self.my_algo_collection = {
             "MACD": ["stock, interval, fastperiod, slowperiod, signalperiod"]}
@@ -140,14 +179,17 @@ class RecommendationInterface:
             self.algo_type = MACD()
 
     def run_algorithm(self, algo_type, settings):
+
         formatted_list = self.my_stockdata_interface.get_macd_intraday(algo_type, settings)
         #kan skriva detta direkt som in parameterar men skrev så här för tydlighetens skull
         macd_hist = formatted_list[0]
         macd_hist_erlier = formatted_list[1]
         stock_price = formatted_list[2]
         date = formatted_list[3]
+        settings = formatted_list[4]
         algo_to_run = self._create_algo(algo_type)
-        algo_to_run.recommendationLogic(macd_hist, macd_hist_erlier, stock_price, date)
+        algo_to_run.recommendationLogic(macd_hist, macd_hist_erlier, stock_price, date, settings)
+
         return "Message from backend"
 
 
@@ -169,54 +211,44 @@ class MACD(Algorithm):
     def __init__(self):
         super().__init__(self)
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
+
         self.recommendation = Recommendation("apple", 2, "buy")
 
-    def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date1):
+    def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date1, settings):
         '''The lodgic behind the recomendations. If the Histogram
         is 0 it is time to buy or sell,
         If the Histogram is positive it is bull market and
         if negative it is bear market'''
 
-        print(MACD_Hist, MACD_HistErlier)
-
         if MACD_Hist > 0 and (MACD_Hist and MACD_HistErlier > 0):
-            print("Bullich print")
-            self.recommendation.bull(date1, stock_price)
+            rec = Recommendation(
+                "Bullich", stock_price, date1, settings)
+            return rec.get_recomendation_info()
 
         elif MACD_Hist < 0 and (MACD_Hist and MACD_HistErlier < 0):
-            print("Bearich print")
-            self.recommendation.bear(date1, stock_price)
+            rec = Recommendation(
+                "Bearich", stock_price, date1, settings)
+            return rec.get_recomendation_info()
 
-        elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
-            print("Sell print")
-            self.recommendation.sell(date1, stock_price)
+        elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
+            rec = Recommendation("Sell", stock_price, date1, settings)
+            return rec.get_recomendation_info()
 
-        elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
-            print("Buy print")
-            self.recommendation.buy(date1, stock_price)
-        
+        elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
+            rec = Recommendation("Buy", stock_price, date1, settings)
+            return rec.get_recomendation_info()
 
 
 class Recommendation:
     # prints recomendations
-    def __init__(self, stock_name, stock_price, recommendation):
-        self.recommendation = recommendation
-        self.stock_name = stock_name
+    def __init__(self, recAction, stock_price, stock_date, settings):
+        self.recAction = recAction
         self.stock_price = stock_price
+        self.stock_date = stock_date
+        self.settings = settings
 
-    def bull(self, date, stockPrice):
-        print(
-            f"The market is Bullich stockprice: {stockPrice} time: {date} USA time")
-
-    def bear(self, date, stockPrice):
-        print(
-            f"The market is bearich stockprice: {stockPrice} time: {date} USA time")
-
-    def sell(self, date, stockPrice):
-        print(f"time to sell stockprice: {stockPrice} time: {date} USA time")
-
-    def buy(self, date, stockPrice):
-        print(f"time to buy stockprice: {stockPrice} time: {date} USA time")
+    def get_recomendation_info(self):
+        return{"recAction": self.recAction, "price": self.stock_price, "settings": self.settings, "date": self.stock_date}
 
 
 # StockdataCollector
@@ -238,8 +270,9 @@ class StockdataInterface:
         stock_info = self.my_api_connector.get_intraday(
                 result["stock"], result["interval"])
         #kallar på data formateraren och sparar resultat
-        formatted_date = self.dataFormater.format_data(MACD_stockinfo, stock_info)
-
+        formatted_data = self.dataFormater.format_data(MACD_stockinfo, stock_info)
+        formatted_data.append(settings)
+        return formatted_data
         
         
 
@@ -306,7 +339,7 @@ def setUp():
     dbInterface = DatabaseInterface(dbConnector)
     stockInterface = StockdataInterface(dbInterface, apiConnector)
     proInter = ProfileInterface(dbInterface)
-    recInter = RecommendationInterface(apiConnector)
+    recInter = RecommendationInterface(apiConnector, dbInterface)
     sysManager = SystemManager(proInter, recInter, stockInterface)
     return sysManager
 
@@ -319,4 +352,4 @@ if __name__ == "__main__":
     test2 = StockdataInterface("databaseInterface", ApiConnector(api_key))
     test3= RecommendationInterface("databaseInterface", test2)
     test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
-                                            "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
+                            "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
