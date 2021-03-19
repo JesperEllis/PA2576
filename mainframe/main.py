@@ -199,19 +199,13 @@ class Algorithm:
         raise NotImplementedError
 
     @abstractmethod
-    def create_recommendation(self, settings, stock_info):
+    def recommendationLogic(self, settings, stock_info):
         raise NotImplementedError
-
-    @abstractmethod
-    def get_possible_settings(self):
-        raise NotImplementedError
-
 
 class MACD(Algorithm):
     def __init__(self):
-        super().__init__(self)
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
-        self.recommendation = Recommendation("apple", 2, "buy")
+        pass
 
     def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date1, settings):
         '''The lodgic behind the recomendations. If the Histogram
