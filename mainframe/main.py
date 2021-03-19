@@ -179,7 +179,6 @@ class RecommendationInterface:
             self.algo_type = MACD()
 
     def run_algorithm(self, algo_type, settings):
-
         formatted_list = self.my_stockdata_interface.get_macd_intraday(algo_type, settings)
         #kan skriva detta direkt som in parameterar men skrev så här för tydlighetens skull
         macd_hist = formatted_list[0]
@@ -189,7 +188,6 @@ class RecommendationInterface:
         settings = formatted_list[4]
         algo_to_run = self._create_algo(algo_type)
         algo_to_run.recommendationLogic(macd_hist, macd_hist_erlier, stock_price, date, settings)
-
         return "Message from backend"
 
 

@@ -1,0 +1,25 @@
+DROP TABLE Recommendations;
+CREATE TABLE Recommendations(
+    recAction VARCHAR(10),
+    price DOUBLE,
+    time TIMESTAMP NOT NULL ,
+    stockId VARCHAR(60) NOT NULL ,
+    inter VARCHAR(60) NOT NULL ,
+    CONSTRAINT PK_recommendations PRIMARY KEY (time,stockId,inter));
+
+DROP PROCEDURE insertRecommendation;
+DELIMITER //
+CREATE PROCEDURE insertRecommendation (recActionA VARCHAR(10), priceA DOUBLE, timeA TIMESTAMP, stockIdA VARCHAR(60), interA VARCHAR(60))
+    BEGIN
+    INSERT INTO Recommendations
+        VALUES(recActionA, priceA, timeA, stockIdA, interA);
+    END//
+DELIMITER ;
+
+
+DELIMITER //
+CREATE PROCEDURE getRecommendation(sID VARCHAR(60), itl VARCHAR(60))
+BEGIN
+    SELECT * FROM Recommendations WHERE (sID=stockId) AND (itl = inter);
+END//
+DELIMITER ;
