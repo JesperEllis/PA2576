@@ -122,10 +122,12 @@ class MailSender:
 
 
 class RecommendationInterface:
-    def __init__(self, databaseInterface):
+    def __init__(self, databaseInterface, stockdataInterface):
         self.db_interface = databaseInterface
         self.my_algo_collection = {
             "MACD": ["stock, interval, fastperiod, slowperiod, signalperiod"]}
+        #tillfällig lösning för mvp, kan tas bort när vi kan hämta api resultatet från databas
+        self.my_stockdata_interface = stockdataInterface
 
     def get_available_algortihms(self):
         return self.my_algo_collection
@@ -138,21 +140,14 @@ class RecommendationInterface:
             self.algo_type = MACD()
 
     def run_algorithm(self, algo_type, settings):
-        print(settings)
-        result = settings["result"]
-        rec = 0
-        while rec <= 1:
-            MACD_stockinfo = self.db_interface.get_macd(
-                result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
-            stock_info = self.db_interface.get_intraday(
-                result["stock"], result["interval"])
-            self._create_algo(algo_type)
-            self.algo_type.create_recommendation(
-                settings, MACD_stockinfo, stock_info)
-            return "Message from backend (inside run_algorithm)"
-            time.sleep(60)
-            rec += 1
-        #self.my_algo_collection[algo_type].create_recommendation(settings, stockinfo)
+        formatted_list = self.my_stockdata_interface.get_macd_intraday(algo_type, settings)
+        #kan skriva detta direkt som in parameterar men skrev så här för tydlighetens skull
+        macd_hist = formatted_list[0]
+        macd_hist_erlier = formatted_list[1]
+        stock_price = formatted_list[2]
+        date = formatted_list[3]
+        algo_to_run = self._create_algo(algo_type)
+        algo_to_run.recommendationLogic(macd_hist, macd_hist_erlier, stock_price, date)
         return "Message from backend"
 
 
@@ -172,35 +167,11 @@ class Algorithm:
 
 class MACD(Algorithm):
     def __init__(self):
-        # super().__init__()
+        super().__init__(self)
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
-        self.MACD_Hist = None
-        self.MACD_HistErlier = None
         self.recommendation = Recommendation("apple", 2, "buy")
-        self.possibel_settings = []
 
-    def create_recommendation(self, settings, MACD_stock_info, stock_info):
-        # runs the algorithm.
-        self._unpackData(MACD_stock_info, stock_info)
-        self._recomendationLogic(self.MACD_Hist, self.MACD_HistErlier)
-
-    def _unpackData(self, MACD_stock_info, stock_info):
-        # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
-        self.macdData = MACD_stock_info
-        self.date = d.datetime.today()
-        self.date -= d.timedelta(hours=5)
-        self.date -= d.timedelta(days=1)
-        self.dateErlier = self.date - d.timedelta(minutes=1)
-        self.date1 = self.date.strftime('%Y-%m-%d %H:%M:00')
-        self.date = self.date.strftime('%Y-%m-%d %H:%M')
-        self.dateErlier = self.dateErlier.strftime('%Y-%m-%d %H:%M')
-        self.macd_dateInfo = self.macdData[0][self.date]
-        self.macd_dateInfoErlier = self.macdData[0][self.dateErlier]
-        self.MACD_Hist = float(self.macd_dateInfo["MACD_Hist"])
-        self.MACD_HistErlier = float(self.macd_dateInfoErlier["MACD_Hist"])
-        self.stockPrice = float(stock_info[0][self.date1]["4. close"])
-
-    def _recomendationLogic(self, MACD_Hist, MACD_HistErlier):
+    def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date1):
         '''The lodgic behind the recomendations. If the Histogram
         is 0 it is time to buy or sell,
         If the Histogram is positive it is bull market and
@@ -210,19 +181,19 @@ class MACD(Algorithm):
 
         if MACD_Hist > 0 and (MACD_Hist and MACD_HistErlier > 0):
             print("Bullich print")
-            self.recommendation.bull(self.date1, self.stockPrice)
+            self.recommendation.bull(date1, stock_price)
 
         elif MACD_Hist < 0 and (MACD_Hist and MACD_HistErlier < 0):
             print("Bearich print")
-            self.recommendation.bear(self.date1, self.stockPrice)
+            self.recommendation.bear(date1, stock_price)
 
         elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
             print("Sell print")
-            self.recommendation.sell(self.date1, self.stockPrice)
+            self.recommendation.sell(date1, stock_price)
 
         elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist > 0 and MACD_HistErlier < 0):
             print("Buy print")
-            self.recommendation.buy(self.date1, self.stockPrice)
+            self.recommendation.buy(date1, stock_price)
         
 
 
@@ -256,6 +227,21 @@ class StockdataInterface:
     def __init__(self, databaseInterface, api_connector):
         self.db_interface = databaseInterface
         self.my_api_connector = api_connector
+        self.dataFormater = DataFormater()
+
+    def get_macd_intraday(self, algo_type, settings):
+        """Tillfällig metod för att lösa mvp, gör två anrop till api och ersätter där med while loopen i RecommendationInteface"""
+        result = settings["result"]
+
+        MACD_stockinfo = self.my_api_connector.get_macd(
+                result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
+        stock_info = self.my_api_connector.get_intraday(
+                result["stock"], result["interval"])
+        #kallar på data formateraren och sparar resultat
+        formatted_date = self.dataFormater.format_data(MACD_stockinfo, stock_info)
+
+        
+        
 
     def macd(self, stock, time_interval):
         return self.my_api_connector.get_macd(stock, time_interval)
@@ -291,6 +277,27 @@ class ApiConnector:
         """"interval: '1min', '5min', '15min', '30min', '60min'"""
         return self.time_app.get_intraday(stock, time_interval, outputsize="full")
 
+class DataFormater:
+    def __init__(self) -> None:
+        pass
+
+    def format_data(self, MACD_stock_info, stock_info):
+        # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
+        macdData = MACD_stock_info
+        date = d.datetime.today()
+        date -= d.timedelta(hours=5)
+        date -= d.timedelta(days=1)
+        dateErlier = date - d.timedelta(minutes=1)
+        date1 = date.strftime('%Y-%m-%d %H:%M:00')
+        date = date.strftime('%Y-%m-%d %H:%M')
+        dateErlier = dateErlier.strftime('%Y-%m-%d %H:%M')
+        macd_dateInfo = macdData[0][date]
+        macd_dateInfoErlier = macdData[0][dateErlier]
+        MACD_Hist = float(macd_dateInfo["MACD_Hist"])
+        MACD_HistErlier = float(macd_dateInfoErlier["MACD_Hist"])
+        stockPrice = float(stock_info[0][date1]["4. close"])
+        return [MACD_Hist, MACD_HistErlier, stockPrice, date1]
+
 
 def setUp():
     """An initializing setup method, instances all necessary objects for testing with website"""
@@ -309,6 +316,7 @@ if __name__ == "__main__":
     test = ApiConnector(api_key)
     # test with Apple stock and 5min interval
     # print(test.get_macd("AAPL", "5min"))
-    test2 = RecommendationInterface(ApiConnector(api_key))
-    test2.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
+    test2 = StockdataInterface("databaseInterface", ApiConnector(api_key))
+    test3= RecommendationInterface("databaseInterface", test2)
+    test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
                                             "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
