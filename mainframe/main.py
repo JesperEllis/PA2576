@@ -311,9 +311,10 @@ class DataFormater:
         # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
         macdData = MACD_stock_info
         date = d.datetime.today()
+        #felhantering
         date -= d.timedelta(hours=5)
         date -= d.timedelta(days=1)
-        dateErlier = date - d.timedelta(minutes=1)
+        dateErlier = date - d.timedelta(minutes=1) #in parameter tids intervall
         date1 = date.strftime('%Y-%m-%d %H:%M:00')
         date = date.strftime('%Y-%m-%d %H:%M')
         dateErlier = dateErlier.strftime('%Y-%m-%d %H:%M')
