@@ -21,7 +21,7 @@ def algorithm():
         interface = manager.get_recommendation_interface()
         x = interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": "1min",
                                             "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}})
-        return render_template("algorithm.html") + x
+        return render_template("algorithm.html") + "<div class=bg-light mt-5><p>"+x+"</p</div>"
     else:
         return render_template('algorithm.html')
 

@@ -16,10 +16,10 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <nav class="navbar navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
             <!-- Brand/logo -->
             <a class="navbar-brand" href="#">
-              <img src="bird.jpg" alt="logo" style="width:40px;">
+              <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
             </a>
             
             <!-- Links -->
@@ -30,7 +30,7 @@
               <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('algorithm') }}">Algorithm</a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item active">
                 <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
               </li>
             </ul>
