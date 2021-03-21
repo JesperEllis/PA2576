@@ -8,6 +8,7 @@ import pytz
 from os import path
 import mysql.connector as mysql
 from sshtunnel import SSHTunnelForwarder
+import datetime
 
 
 class SystemManager:
@@ -31,6 +32,7 @@ class SystemManager:
 class DatabaseInterface:
     def __init__(self, dbconnector):
         self.connector = dbconnector
+       
 
     def create_user(self, email, password):
         pass
@@ -56,7 +58,13 @@ class DatabaseInterface:
         pass
 
     def get_recommendations(self, stockId, interval):
-        return self.connector.data_handler('getRecommendation', [stockId, interval])
+        #print(self.connector.data_handler('getRecommendation', [stockId, interval]))
+        #print(self.connector.data_handler('getRecommendation', ["AAPL", "1min"]))
+        recommendation= [('Bullich', 122.0561, datetime.datetime(2021, 3, 18, 12, 45), 'AAPL', '15min'), ('Bearich', 120.2099, datetime.datetime(2021, 3, 19, 11, 15), 'TSLA', '20min'), ('kallek', 120.2099, datetime.datetime(2021, 3, 19, 11, 20), 'AMZN', '15min'), ('Buy', 1.0561, datetime.datetime(2021, 3, 18, 11, 43), 'AAPL', '15min'), ('Sell', 122.0561, datetime.datetime(2021, 5, 17, 12, 45), 'AAPL', '1min')]  
+        #return self.connector.data_handler('getRecommendation', [stockId, interval])
+        return recommendation
+        
+
 
     def set_recommendation(self, recommendation):
         print(recommendation)
@@ -89,6 +97,7 @@ class DatabaseConnector:
         self.MYSQL_DATABASE = self.SSH_USER  # ACRONYM
 
     def data_handler(self, func, arg=None):
+        
         print(self.SSH_USER)
         filtered_prod = 0
         with SSHTunnelForwarder(
@@ -239,6 +248,7 @@ class Recommendation:
         self.settings = settings
 
     def get_recomendation_info(self):
+        #print({"recAction": self.recAction, "price": self.stock_price, "settings": self.settings, "date": self.stock_date})
         return{"recAction": self.recAction, "price": self.stock_price, "settings": self.settings, "date": self.stock_date}
 
 
@@ -333,7 +343,7 @@ def setUp():
     proInter = ProfileInterface(dbInterface)
     recInter = RecommendationInterface(dbInterface, stockInterface)
     sysManager = SystemManager(proInter, recInter, stockInterface)
-    return sysManager
+    return sysManager, dbInterface
 
 
 if __name__ == "__main__":
@@ -345,3 +355,8 @@ if __name__ == "__main__":
     test3= RecommendationInterface("databaseInterface", test2)
     test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
                             "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
+    dbConnector = DatabaseConnector("usr", "psw")
+    dbInterface = DatabaseInterface(dbConnector)
+    
+
+
