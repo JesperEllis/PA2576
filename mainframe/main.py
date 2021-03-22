@@ -99,7 +99,8 @@ class DatabaseConnector:
         ) as tunnel:
             print("Hej")
             connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
-                                       passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
+                passwd=self.MYSQL_PASS, 
+                db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
             print("Sent_function")
             cnx = connection.cursor(dictionary=True)
             if arg == None:
@@ -265,7 +266,7 @@ class StockdataInterface:
             result["stock"], result["interval"])
         # kallar på data formateraren och sparar resultat
         formatted_data = self.dataFormater.format_data(
-            MACD_stockinfo, stock_info)
+            MACD_stockinfo, stock_info,settings["result"]["interval"])
         formatted_data.append(settings)
         return formatted_data
 
@@ -308,15 +309,16 @@ class DataFormater:
     def __init__(self) -> None:
         pass
 
-    def format_data(self, MACD_stock_info, stock_info):
+    def format_data(self, MACD_stock_info, stock_info, interval):
         # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
         macdData = MACD_stock_info
-        date = d.datetime.today()
+        date = self.fixTime(interval)
+        
         # felhantering
-        date -= d.timedelta(hours=1)
+        date -= d.timedelta(hours=10)
         date -= d.timedelta(days=1)
         # in parameter tids intervall
-        dateErlier = date - d.timedelta(minutes=1)
+        dateErlier = date - d.timedelta(minutes=int(interval[:-3]))
         date1 = date.strftime('%Y-%m-%d %H:%M:00')
         date = date.strftime('%Y-%m-%d %H:%M')
         dateErlier = dateErlier.strftime('%Y-%m-%d %H:%M')
@@ -327,6 +329,13 @@ class DataFormater:
         stockPrice = float(stock_info[0][date1]["4. close"])
         return [MACD_Hist, MACD_HistErlier, stockPrice, date1]
 
+    def fixTime(self, interval):
+        currentTime = d.datetime.today()
+        tmp = currentTime.time().minute 
+        a=tmp//int(interval[:-3])
+        currentTime = currentTime.replace(minute=a*int(interval[:-3]))
+        currentTime = currentTime.replace(second=0, microsecond=0)
+        return currentTime
 
 def setUp():
     """An initializing setup method, instances all necessary objects for testing with website"""
@@ -348,5 +357,5 @@ if __name__ == "__main__":
     # print(test.get_macd("AAPL", "5min"))
     test2 = StockdataInterface(databaseInterface, ApiConnector(api_key))
     test3 = RecommendationInterface(databaseInterface, test2)
-    test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
+    test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "15min",
                                             "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
