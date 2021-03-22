@@ -22,7 +22,7 @@ def algorithm():
 
     if stockName and interval:
         interface = manager.get_recommendation_interface()
-        x = interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": "1min",
+        x = interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
                                             "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}})
         return render_template("algorithm.html") + "<div class=bg-light mt-5><p>"+x+"</p</div>"
     else:
@@ -32,7 +32,7 @@ def algorithm():
 @app.route("/Recommendations/")
 def recommendation():
     """Take in stock info from the datebase and render it on the website"""
-    recommendationFromMain = dbInterface.get_recommendations("stockName", "interval")
+    recommendationFromMain = dbInterface.get_recommendations("TSLA", "1min")
     listDictonary = []
     listOfKey = ["ReAction", "Price", "Date", "StockId", "Interval"] #Hur datan ser ut innan loop
     #print(recommendationFromMain)
