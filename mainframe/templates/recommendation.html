@@ -38,7 +38,30 @@
               </li>
             </ul>
           </nav>
-          <h2 class="mt-5 mb-5">Recommendations</h2>
+          <div>
+            <h2 class="mt-5 mb-5 ml-3">Recommendations</h2>
+            <form action="" method="GET">
+              <h5 class="mb-2 ml-3" >Filter</h5>
+              <label class="ml-2 mr-2" for="stockID">Stock</label>
+              <select id="stockID" name="stockID">
+                <option value="AAPL">Apple Inc.</option>
+                <option value="TSLA">Tesla Inc.</option>
+                <option value="AMZN">Amazon</option>
+                <option value="GOOGL">Google</option>
+              </select>
+
+                <label class="ml-2 mr-2" for="interval">Intervals</label>
+                <select class="mb-3" id="interval" name="interval">
+                  <option value="60min">60 minutes</option>
+                  <option value="30min">30 minutes</option>
+                  <option value="15min">15 minutes</option>
+                  <option value="5min">5 minutes</option>
+                  <option value="1min">1 minute</option>
+                </select>
+                <input class="ml-5 btn btn-primary" type="submit" name="value" value="Refresh">
+            </form>
+          </div>
+
           <table class="table">
             <thead>
               <tr>

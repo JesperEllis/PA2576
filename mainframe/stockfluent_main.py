@@ -32,21 +32,31 @@ def algorithm():
 @app.route("/Recommendations/")
 def recommendation():
     """Take in stock info from the datebase and render it on the website"""
-    recommendationFromMain = dbInterface.get_recommendations("TSLA", "1min")
-    listDictonary = []
-    listOfKey = ["ReAction", "Price", "Date", "StockId", "Interval"] #Hur datan ser ut innan loop
-    #print(recommendationFromMain)
-    for dataInList in recommendationFromMain:
-        date = str(dataInList[2]).split(' ')[0] #Tar ut datum
-        time = str(dataInList[2]).split(' ')[1] #Tar ut tid
-        zipbObj = zip(listOfKey, dataInList) #Zipar ihop listorna, 
-        dictOfWords = dict(zipbObj) #Skapar en dictionary från zip objekt
-        dictOfWords['oDate'] = date #Lägger till datumet sist i dictionary
-        dictOfWords['oTime'] = time
-        listDictonary.append(dictOfWords) #Lägger till dictionay i en list
-    print(listDictonary)
+    
+    ticket = request.args.get("stockID")
+    interval2 = request.args.get("interval")
 
-    return render_template('recommendation.html', listDictonary=listDictonary) #Skickat in listan listDictonary i html
+    
+
+    if ticket and interval2:
+        recommendationFromMain = dbInterface.get_recommendations(ticket, interval2)
+        listDictonary = []
+        listOfKey = ["ReAction", "Price", "Date", "StockId", "Interval"] #Hur datan ser ut innan loop
+        #print(recommendationFromMain)
+        for dataInList in recommendationFromMain:
+            date = str(dataInList[2]).split(' ')[0] #Tar ut datum
+            time = str(dataInList[2]).split(' ')[1] #Tar ut tid
+            zipbObj = zip(listOfKey, dataInList) #Zipar ihop listorna, 
+            dictOfWords = dict(zipbObj) #Skapar en dictionary från zip objekt
+            dictOfWords['oDate'] = date #Lägger till datumet sist i dictionary
+            dictOfWords['oTime'] = time
+            listDictonary.append(dictOfWords) #Lägger till dictionay i en list
+            
+        print(listDictonary)
+
+        return render_template('recommendation.html', listDictonary=listDictonary) #Skickat in listan listDictonary i html
+    else:
+        return render_template('recommendation.html')
 
 @app.route("/Profile/", methods=['POST', 'GET'])
 def profile(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
