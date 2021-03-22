@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Stock Fluent | Recommendations</title>
+        <title>Stock Fluent</title>
         <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -16,52 +16,42 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <nav class="navbar navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
+        <nav class="navbar sticky-top navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
             <!-- Brand/logo -->
             <a class="navbar-brand" href="#">
               <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
             </a>
-            
             <!-- Links -->
             <ul class="navbar-nav">
               <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                <a class="nav-link active" href="{{ url_for('home') }}">Home</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('algorithm') }}">Algorithm</a>
               </li>
-              <li class="nav-item active">
+              <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item active">
                 <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
               </li>
             </ul>
-          </nav>
-          <h2 class="mt-5 mb-5">Recommendations</h2>
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">StockId</th>
-                <th scope="col">Price</th>
-                <th scope="col">Date</th>
-                <th scope="col">Time</th>
-                <th scope="col">Interval</th>
-                <th scope="col">ReAction</th>
-              </tr>
-            </thead>
-            <!-- Printar ut info på hemsidan genom att loopa igenom listan listDictonary -->
-            {% for listDictonary in listDictonary %} 
-            <tr>
-              <td>{{ listDictonary['StockId'] }}</td>
-              <td>{{ listDictonary['Price'] }}</td>
-              <td>{{ listDictonary['oDate'] }}</td>
-              <td>{{ listDictonary['oTime'] }}</td>
-              <td>{{ listDictonary['Interval'] }}</td>
-              <td>{{ listDictonary['ReAction'] }}</td>
-            </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </body>
-</html>
+        </nav>
+        <div class="container bg-secondary mt-5 p-3 pb-5 shadow">
+            <form action="{{url_for('profile')}}" method = 'POST'>
+                <div class="mb-3">
+                  <label for="exampleInputEmail1" class="form-label">Email address</label>
+                  <input type="email" class="form-control" id="exampleInputEmail1" name="email" aria-describedby="emailHelp">
+                  <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                </div>
+                <div class="mb-3">
+                  <label for="exampleInputPassword1" class="form-label">Password</label>
+                  <input type="password" class="form-control" id="exampleInputPassword1" name="password">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+              </form>
+        </div>
+    </body>
+    </html>
+
+     
