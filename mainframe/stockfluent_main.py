@@ -22,11 +22,9 @@ def algorithm():
 
     if stockName and interval:
         interface = manager.get_recommendation_interface()
-        x = interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
+        interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
                                             "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}})
-        return render_template("algorithm.html") + "<div class=bg-light mt-5><p>"+x+"</p</div>"
-    else:
-        return render_template('algorithm.html')
+    return render_template('algorithm.html')
 
 
 @app.route("/Recommendations/")
