@@ -106,11 +106,12 @@ class DatabaseConnector:
                 ssh_password=self.SSH_PASS,
                 remote_bind_address=('blu-ray.student.bth.se', 3306)
         ) as tunnel:
+            print("Hej")
             connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
-                                       passwd=self.MYSQL_PASS, db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
+                passwd=self.MYSQL_PASS, 
+                db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
             print("Sent_function")
             cnx = connection.cursor(dictionary=True)
-
             if arg == None:
                 cnx.callproc(func)
 
@@ -123,7 +124,6 @@ class DatabaseConnector:
             connection.close()
 
             return filtered_prod
-
 
 # Profile component
 
@@ -174,7 +174,7 @@ class RecommendationInterface:
         self.db_interface = databaseInterface
         self.my_algo_collection = {
             "MACD": ["stock, interval, fastperiod, slowperiod, signalperiod"]}
-        #tillfällig lösning för mvp, kan tas bort när vi kan hämta api resultatet från databas
+        # tillfällig lösning för mvp, kan tas bort när vi kan hämta api resultatet från databas
         self.my_stockdata_interface = stockdataInterface
 
     def get_available_algortihms(self):
@@ -188,15 +188,18 @@ class RecommendationInterface:
             self.algo_type = MACD()
 
     def run_algorithm(self, algo_type, settings):
-        formatted_list = self.my_stockdata_interface.get_macd_intraday(algo_type, settings)
-        #kan skriva detta direkt som in parameterar men skrev så här för tydlighetens skull
+        formatted_list = self.my_stockdata_interface.get_macd_intraday(
+            algo_type, settings)
+        # kan skriva detta direkt som in parameterar men skrev så här för tydlighetens skull
         macd_hist = formatted_list[0]
         macd_hist_erlier = formatted_list[1]
         stock_price = formatted_list[2]
         date = formatted_list[3]
         settings = formatted_list[4]
         self._create_algo(algo_type)
-        self.algo_type.recommendationLogic(macd_hist, macd_hist_erlier, stock_price, date, settings)
+        recomendation = self.algo_type.recommendationLogic(
+            macd_hist, macd_hist_erlier, stock_price, date, settings)
+        self.db_interface.set_recommendation(recomendation)
         return "Message from backend"
 
 
@@ -208,6 +211,7 @@ class Algorithm:
     @abstractmethod
     def recommendationLogic(self, settings, stock_info):
         raise NotImplementedError
+
 
 class MACD(Algorithm):
     def __init__(self):
@@ -267,15 +271,14 @@ class StockdataInterface:
         result = settings["result"]
 
         MACD_stockinfo = self.my_api_connector.get_macd(
-                result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
+            result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
         stock_info = self.my_api_connector.get_intraday(
-                result["stock"], result["interval"])
-        #kallar på data formateraren och sparar resultat
-        formatted_data = self.dataFormater.format_data(MACD_stockinfo, stock_info)
+            result["stock"], result["interval"])
+        # kallar på data formateraren och sparar resultat
+        formatted_data = self.dataFormater.format_data(
+            MACD_stockinfo, stock_info,settings["result"]["interval"])
         formatted_data.append(settings)
         return formatted_data
-        
-        
 
     def macd(self, stock, time_interval):
         return self.my_api_connector.get_macd(stock, time_interval)
@@ -311,18 +314,21 @@ class ApiConnector:
         """"interval: '1min', '5min', '15min', '30min', '60min'"""
         return self.time_app.get_intraday(stock, time_interval, outputsize="full")
 
+
 class DataFormater:
     def __init__(self) -> None:
         pass
 
-    def format_data(self, MACD_stock_info, stock_info):
+    def format_data(self, MACD_stock_info, stock_info, interval):
         # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
         macdData = MACD_stock_info
-        date = d.datetime.today()
-        #felhantering
-        date -= d.timedelta(hours=1)
+        date = self.fixTime(interval)
+        
+        # felhantering
+        date -= d.timedelta(hours=10)
         date -= d.timedelta(days=1)
-        dateErlier = date - d.timedelta(minutes=1) #in parameter tids intervall
+        # in parameter tids intervall
+        dateErlier = date - d.timedelta(minutes=int(interval[:-3]))
         date1 = date.strftime('%Y-%m-%d %H:%M:00')
         date = date.strftime('%Y-%m-%d %H:%M')
         dateErlier = dateErlier.strftime('%Y-%m-%d %H:%M')
@@ -333,6 +339,13 @@ class DataFormater:
         stockPrice = float(stock_info[0][date1]["4. close"])
         return [MACD_Hist, MACD_HistErlier, stockPrice, date1]
 
+    def fixTime(self, interval):
+        currentTime = d.datetime.today()
+        tmp = currentTime.time().minute 
+        a=tmp//int(interval[:-3])
+        currentTime = currentTime.replace(minute=a*int(interval[:-3]))
+        currentTime = currentTime.replace(second=0, microsecond=0)
+        return currentTime
 
 def setUp():
     """An initializing setup method, instances all necessary objects for testing with website"""
@@ -349,6 +362,7 @@ def setUp():
 if __name__ == "__main__":
     api_key = "PFHGI45JG5C2X5DQ"
     test = ApiConnector(api_key)
+    databaseInterface = DatabaseInterface(DatabaseConnector("usr", "psw"))
     # test with Apple stock and 5min interval
     # print(test.get_macd("AAPL", "5min"))
     test2 = StockdataInterface("databaseInterface", ApiConnector(api_key))
