@@ -14,8 +14,21 @@ app.secret_key = "sotck45&%204()ON)????=)(/&&"
 def home():
     return render_template('home.html')
 
-@app.route("/Algorithm/", methods=["POST", "GET"])
-def algorithm():
+@app.route("/Algorithm", methods=["GET", "POST"] )
+def Algorithm():
+    if request.method == "POST":
+        if request.form["algo"] == "MACD":
+            return redirect(url_for("MACD"), code=302)
+        elif request.form["algo"] == "Algo 2":
+            return redirect(url_for("Algo2"), code=302)
+        elif request.form["algo"] == "Algo 3":
+            return redirect(url_for("Algo3"), code=302)
+            
+    return render_template("algorithm.html")
+
+
+@app.route("/Algorithm/MACD", methods=["POST", "GET"])
+def MACD():
     stockName = request.args.get("stockID")
     interval = request.args.get("interval")
     fPeriod = request.args.get("fPeriod")
@@ -28,10 +41,18 @@ def algorithm():
         interface = manager.get_recommendation_interface()
         # interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
         #                                     "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
-        msg = "The algortihm is running and you can see the results in the recommendation page!"
+        msg = "The algortihm is running and you can see the results in the"
+        #Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
         cat = "success"
-    return render_template('algorithm.html', message= msg, category=cat)
+    return render_template('macd.html', message= msg, category=cat)
 
+@app.route("/Algorithm/Algo2")
+def Algo2():
+    return "Algo 2"
+
+@app.route("/Algorithm/Algo3")
+def Algo3():
+    return "Algo 3"
 
 @app.route("/Recommendations/")
 def recommendation():
@@ -65,21 +86,30 @@ def recommendation():
 @app.route("/Profile/", methods=['POST', 'GET'])
 def profile(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
     #dbInterface.create_user()
+    cat = None
+    msg = None
     
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
         #kalla på create_user
         #create_user(email, password)
-        #print (username, password)
-        myconn = mysql.connector.connect(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas") #Ansluter till databasen
-        cur = myconn.cursor() # det är en cursor, pekare av något slag
-        sql = "insert into user (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
-        val = (email, password) #Det som hamnar i %s och %s
-        cur.execute(sql, val) #Execute, slår ihop SQL och val och får en komplett query
-        myconn.commit() # lägger in det i databasen
-        myconn.close() #stänger databasen
-        return f'({email}, {password})' #Skriver ut detta på hemsidan
+        #print (username, password
+
+        # Bort kommenterat för att testa hemsida#############################################################################################
+        # myconn = mysql.connector.connect(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas") #Ansluter till databasen
+        # cur = myconn.cursor() # det är en cursor, pekare av något slag
+        # sql = "insert into user (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
+        # val = (email, password) #Det som hamnar i %s och %s
+        # cur.execute(sql, val) #Execute, slår ihop SQL och val och får en komplett query
+        # myconn.commit() # lägger in det i databasen
+        # myconn.close() #stänger databasen
+
+        #Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om det är fell inlogg
+        cat = "success"
+        
+        return render_template("profile.html", category = cat, message = email)
+
     return render_template("profile.html")
 
 if __name__ == "__main__":

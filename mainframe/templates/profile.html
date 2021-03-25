@@ -27,7 +27,7 @@
                 <a class="nav-link active" href="{{ url_for('home') }}">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('algorithm') }}">Algorithm</a>
+                <a class="nav-link" href="{{ url_for('Algorithm') }}">Algorithm</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
@@ -37,6 +37,17 @@
               </li>
             </ul>
         </nav>
+        <div>
+          {% if category %}
+            {% if category == "success" %}
+              <div class="alert alert-success" role="alert">
+            {% else %}
+              <div class="alert alert-danger" role="alert">
+            {% endif %}
+              <strong>Success! </strong> Welcome {{message}}!
+            </div>
+          {% endif %}
+        </div>
         <div class="container bg-secondary mt-5 p-3 pb-5 shadow">
             <form action="{{url_for('profile')}}" method = 'POST'>
                 <div class="mb-3">

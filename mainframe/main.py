@@ -197,7 +197,7 @@ class RecommendationInterface:
         self._create_algo(algo_type)
         recomendation = self.algo_type.recommendationLogic(
             macd_hist, macd_hist_erlier, stock_price, date, settings)
-        # self.db_interface.set_recommendation(recomendation)######################################## bara för att kunna testa hemsidan
+        self.db_interface.set_recommendation(recomendation)
         # return "Message from backend"
 
 
