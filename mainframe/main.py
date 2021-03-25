@@ -64,8 +64,6 @@ class DatabaseInterface:
         return self.connector.data_handler('getRecommendation', [stockId, interval])
         #return recommendation
         
-
-
     def set_recommendation(self, recommendation):
         print(recommendation)
         self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
@@ -199,7 +197,7 @@ class RecommendationInterface:
         self._create_algo(algo_type)
         recomendation = self.algo_type.recommendationLogic(
             macd_hist, macd_hist_erlier, stock_price, date, settings)
-        self.db_interface.set_recommendation(recomendation)
+        # self.db_interface.set_recommendation(recomendation)######################################## bara för att kunna testa hemsidan
         # return "Message from backend"
 
 

@@ -35,6 +35,17 @@
                 </li>
               </ul>
           </nav>
+          <div>
+            {% if category %}
+              {% if category == "success" %}
+                <div class="alert alert-success" role="alert">
+              {% else %}
+                <div class="alert alert-warning" role="alert">
+              {% endif %}
+                <strong>Success! </strong>{{message}}
+              </div>
+            {% endif %}
+          </div>
           <div class="container-fluid bg-light p-3 pb-5 rounded">
             <h2 class="mt-5 mb-5">MACD setup</h2>
             <form class="ml-4" action="" method="GET">

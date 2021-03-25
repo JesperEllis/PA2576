@@ -1,4 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request
+from flask.helpers import flash
 import main
 import mysql.connector
 import importlib
@@ -6,6 +7,7 @@ import datetime
 import re
 
 app = Flask(__name__)
+app.secret_key = "sotck45&%204()ON)????=)(/&&"
 
 
 @app.route("/")
@@ -19,12 +21,16 @@ def algorithm():
     fPeriod = request.args.get("fPeriod")
     sPeriod = request.args.get("sPeriod")
     lPeriod = request.args.get("lPeriod")
+    msg = None
+    cat = None
 
     if stockName and interval:
         interface = manager.get_recommendation_interface()
-        interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
-                                            "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}})
-    return render_template('algorithm.html')
+        # interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
+        #                                     "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
+        msg = "The algortihm is running and you can see the results in the recommendation page!"
+        cat = "success"
+    return render_template('algorithm.html', message= msg, category=cat)
 
 
 @app.route("/Recommendations/")
