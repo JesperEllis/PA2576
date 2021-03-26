@@ -12,6 +12,10 @@ app = Flask(__name__)
 def home():
     return render_template('home.html')
 
+@app.route("/AlgoSelect")
+def algoSelect():
+    return render_template('algoselect.html')
+
 @app.route("/Algorithm/", methods=["POST", "GET"])
 def algorithm():
     stockName = request.args.get("stockID")
@@ -22,8 +26,8 @@ def algorithm():
 
     if stockName and interval:
         interface = manager.get_recommendation_interface()
-        interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
-                                            "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}})
+        #interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
+        #                                    "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}})
     return render_template('algorithm.html')
 
 
