@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Stock Fluent | Algorithm</title>
+        <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <!-- Popper JS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
+            <!-- Brand/logo -->
+            <a class="navbar-brand" href="#">
+              <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
+            </a>
+            
+            <!-- Links -->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="{{ url_for('Algorithm') }}">Algorithm</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+                </li>
+              </ul>
+          </nav>
+          <div>
+            {% if category %}
+              {% if category == "success" %}
+                <div class="alert alert-success" role="alert">
+              {% else %}
+                <div class="alert alert-danger" role="alert">
+              {% endif %}
+                <strong>Success! </strong>{{message}} <strong>Recoomendation</strong> <p>page!</p>
+              </div>
+            {% endif %}
+          </div>
+          <div class="container-fluid bg-light p-3 pb-5 rounded">
+            <h2 class="mt-5 mb-5">MACD setup</h2>
+            <form class="ml-4" action="" method="GET">
+              <h5>Available stock:</h5>
+              <label for="stockID">Stock</label>
+              <select id="stockID" name="stockID">
+                <option value="AAPL">Apple Inc.</option>
+                <option value="TSLA">Tesla Inc.</option>
+                <option value="AMZN">Amazon</option>
+                <option value="GOOGL">Google</option>
+              </select>
+
+              <br><h5>MACD Intervals:</h5>
+              <label for="interval">Intervals</label>
+              <select id="interval" name="interval">
+                <option value="60min">60 minutes</option>
+                <option value="30min">30 minutes</option>
+                <option value="15min">15 minutes</option>
+                <option value="5min">5 minutes</option>
+                <option value="1min">1 minute</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path>
+                <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"></path>
+              </svg>
+
+              <!-- Button to Open the Modal -->
+              <br><button type="button" class="btn btn-link mt-4" data-toggle="modal" data-target="#myModal">
+                <h3>Exponential Moving Averages</h3>
+              </button>
+
+              <!-- The Modal -->
+              <div class="modal fade" id="myModal">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                  
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title">What are Exponential Moving Averages?</h4>
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      <p>An <a href="https://www.investopedia.com/terms/e/ema.asp">Exponential Moving Average</a>, often referred to as EMA, is a type of Moving Average.</p>
+                      <p>A <a href="https://www.investopedia.com/terms/m/movingaverage.asp">Moving Average</a> is in turn a calculation used to analyze data points by creating 
+                        a series of averages of different subsets of the full data set.
+                      </p>
+                      <p>An EMA is different from a normal Moving Average due to it putting more weight
+                         and significance on recent prices than older prices.
+                      </p>
+                    </div>
+                    
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                    
+                  </div>
+                </div>
+              </div>
+
+              <br><h5 class="mt-2"><a href="#" data-toggle="popover" data-trigger="focus"
+                title="Long-term EMA" 
+                data-content="Some content inside the popover">
+                Long-term EMA</a></h5>
+              <label for="fPeriod">Minimum 1</label>
+              <input type="text" id="fPeriod" name="fPeriod" value="26">
+
+              <br><h5 class="mt-2"><a href="#" data-toggle="popover" data-trigger="focus"
+                title="Short-term EMA" 
+                data-content="Some content inside the popover">
+                Short-term EMA</a></h5>
+              <label for="sPeriod">Minimum 1</label>
+              <input type="text" id="sPeriod" name="sPeriod" value="12">
+
+              <br><h5 class="mt-2"><a href="#" data-toggle="popover" data-trigger="focus"
+                title="Signal-line EMA" 
+                data-content="Some content inside the popover">
+                Signal-line EMA</a></h5>
+              <label for="lPeriod">Minimum 1</label>
+              <input type="text" id="lPeriod" name="lPeriod" value="9">
+
+              <br><input class="mt-2" type="submit" name="value" value="Run Algorithm">
+
+            </form>
+          
+          </div>
+          <script>
+            $(document).ready(function(){
+              $('[data-toggle="popover"]').popover(
+                {trigger: "hover"}
+              );   
+            });
+            </script>
+    </body>
+</html>

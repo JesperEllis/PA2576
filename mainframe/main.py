@@ -64,8 +64,6 @@ class DatabaseInterface:
         return self.connector.data_handler('getRecommendation', [stockId, interval])
         #return recommendation
         
-
-
     def set_recommendation(self, recommendation):
         print(recommendation)
         self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
