@@ -54,7 +54,7 @@ def Algo2():
 def Algo3():
     return "Algo 3"
 
-@app.route("/Recommendations/")
+@app.route("/Recommendations")
 def recommendation():
     """Take in stock info from the datebase and render it on the website"""
     
@@ -83,7 +83,7 @@ def recommendation():
     else:
         return render_template('recommendation.html')
 
-@app.route("/Profile/", methods=['POST', 'GET'])
+@app.route("/Profile", methods=['POST', 'GET'])
 def profile(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
     #dbInterface.create_user()
     cat = None

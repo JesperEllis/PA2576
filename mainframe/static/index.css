@@ -1,7 +1,14 @@
-#inav{
-    background-color: lightblue;
+#loginForm{
+    width: 40%;
+    position: absolute;
+    right: 30%;
+    top:30%;
 }
 
-#testdiv{
-    margin-top: 0px;
+@media (min-width:1500px){
+    #loginForm{
+        width: 20%;
+        position: absolute;
+        right: 40%;
+    }
 }
