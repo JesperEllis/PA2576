@@ -90,7 +90,7 @@ def profile(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska f
     msg = None
     
     if request.method == 'POST':
-        email = request.form['email']
+        email = request.form['text']
         password = request.form['password']
         #kalla på create_user
         #create_user(email, password)
