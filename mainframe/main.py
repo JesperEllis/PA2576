@@ -32,7 +32,6 @@ class SystemManager:
 class DatabaseInterface:
     def __init__(self, dbconnector):
         self.connector = dbconnector
-       
 
     def create_user(self, email, password):
         pass
@@ -58,12 +57,12 @@ class DatabaseInterface:
         pass
 
     def get_recommendations(self, stockId, interval):
-        #print(self.connector.data_handler('getRecommendation', [stockId, interval]))
-        #print(self.connector.data_handler('getRecommendation', ["AAPL", "1min"]))
-        #recommendation= [('Bullich', 122.0561, datetime.datetime(2021, 3, 18, 12, 45), 'AAPL', '15min'), ('Bearich', 120.2099, datetime.datetime(2021, 3, 19, 11, 15), 'TSLA', '20min'), ('kallek', 120.2099, datetime.datetime(2021, 3, 19, 11, 20), 'AMZN', '15min'), ('Buy', 1.0561, datetime.datetime(2021, 3, 18, 11, 43), 'AAPL', '15min'), ('Sell', 122.0561, datetime.datetime(2021, 5, 17, 12, 45), 'AAPL', '1min')]  
+        # print(self.connector.data_handler('getRecommendation', [stockId, interval]))
+        # print(self.connector.data_handler('getRecommendation', ["AAPL", "1min"]))
+        # recommendation= [('Bullich', 122.0561, datetime.datetime(2021, 3, 18, 12, 45), 'AAPL', '15min'), ('Bearich', 120.2099, datetime.datetime(2021, 3, 19, 11, 15), 'TSLA', '20min'), ('kallek', 120.2099, datetime.datetime(2021, 3, 19, 11, 20), 'AMZN', '15min'), ('Buy', 1.0561, datetime.datetime(2021, 3, 18, 11, 43), 'AAPL', '15min'), ('Sell', 122.0561, datetime.datetime(2021, 5, 17, 12, 45), 'AAPL', '1min')]
         return self.connector.data_handler('getRecommendation', [stockId, interval])
-        #return recommendation
-        
+        # return recommendation
+
     def set_recommendation(self, recommendation):
         print(recommendation)
         self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
@@ -95,7 +94,7 @@ class DatabaseConnector:
         self.MYSQL_DATABASE = self.SSH_USER  # ACRONYM
 
     def data_handler(self, func, arg=None):
-        
+
         print(self.SSH_USER)
         filtered_prod = 0
         with SSHTunnelForwarder(
@@ -106,8 +105,8 @@ class DatabaseConnector:
         ) as tunnel:
             print("Hej")
             connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
-                passwd=self.MYSQL_PASS, 
-                db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
+                                       passwd=self.MYSQL_PASS,
+                                       db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
             print("Sent_function")
             cnx = connection.cursor(dictionary=True)
             if arg == None:
@@ -216,7 +215,28 @@ class MACD(Algorithm):
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
         pass
 
-    def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date1, settings):
+    # def run_recomendation(self, settings):
+    #     # get closingPrice, date, fastEMAList, slowEMAList, closingpriceErlier, fastEMAListErlier, slowEMAListErlier
+    #     MACD_Hist = self.create_Hist(closingPrice, fastEMAList, slowEMAList)
+    #     MACD_HistErlier = self.create_Hist(
+    #         closingpriceErlier, fastEMAListErlier, slowEMAListErlier)
+    #     self.recommendationLogic(
+    #         MACD_Hist, MACD_HistErlier, closingPrice, date, settings)
+
+    def create_Hist(self, closingPrice, fastEMAList, slowEMAList):
+        fastAvrege = sum(fastEMAList)/len(fastEMAList)
+        slowAvrege = sum(slowEMAList)/len(slowEMAList)
+        fastEMA = closingPrice * 2 / \
+            len(fastEMAList)+fastAvrege*(1-(2/(len(fastEMAList)+1)))
+        slowEMA = closingPrice * 2 / \
+            len(slowEMAList)+slowAvrege*(1-(2/(len(slowEMAList)+1)))
+        Hist = fastEMA-slowEMA
+        print(fastEMA)
+        print(slowEMA)
+        print(Hist)
+        return Hist
+
+    def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date, settings):
         '''The lodgic behind the recomendations. If the Histogram
         is 0 it is time to buy or sell,
         If the Histogram is positive it is bull market and
@@ -224,20 +244,54 @@ class MACD(Algorithm):
 
         if MACD_Hist > 0 and (MACD_Hist and MACD_HistErlier > 0):
             rec = Recommendation(
-                "Bullich", stock_price, date1, settings)
+                "Bullich", stock_price, date, settings)
             return rec.get_recomendation_info()
 
         elif MACD_Hist < 0 and (MACD_Hist and MACD_HistErlier < 0):
             rec = Recommendation(
-                "Bearich", stock_price, date1, settings)
+                "Bearich", stock_price, date, settings)
             return rec.get_recomendation_info()
 
         elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
-            rec = Recommendation("Sell", stock_price, date1, settings)
+            rec = Recommendation("Sell", stock_price, date, settings)
             return rec.get_recomendation_info()
 
         elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
-            rec = Recommendation("Buy", stock_price, date1, settings)
+            rec = Recommendation("Buy", stock_price, date, settings)
+            return rec.get_recomendation_info()
+
+
+class RSI(Algorithm):
+    # settings {nrPeriod:5 periodLength:1min buySignal:30 sellSignal:70}
+    def __init__(self):
+        pass
+
+    def run_recomendation(self, settings):
+        # get nrPeriod st List med periodlength mellanrum
+        dataList = [[459.99, 448.85, 446.06, 450.81, 442.8], [
+            459.99, 448.85, 446.06, 450.81, 442.8], [459.99, 448.85, 446.06, 450.81, 442.8]]
+        avregeGain, avregeLoss = 1, 1
+        for data in dataList:
+            avrege = sum(data)/len(data)
+            print(avrege)
+            if avrege >= 0:
+                avregeGain += avrege
+            else:
+                avregeLoss += avrege
+
+        totalAvregeGain = avregeGain/settings["nrPeriod"]
+        totalAvregeLoss = avregeLoss/settings["nrPeriod"]
+        RSI = 100 - (100/(1+(totalAvregeGain/totalAvregeLoss)))
+        print(RSI)
+        self.recommendationLogic(RSI, settings, 12, "2020-11-11 12:22")
+
+    def recommendationLogic(self, RSI, settings, stock_price, date):
+        if RSI < settings["buySignal"]:
+            rec = Recommendation("Buy", stock_price, date, settings)
+            return rec.get_recomendation_info()
+
+        elif RSI > settings["sellSignal"]:
+            rec = Recommendation("Sell", stock_price, date, settings)
             return rec.get_recomendation_info()
 
 
@@ -250,7 +304,8 @@ class Recommendation:
         self.settings = settings
 
     def get_recomendation_info(self):
-        #print({"recAction": self.recAction, "price": self.stock_price, "settings": self.settings, "date": self.stock_date})
+        print({"recAction": self.recAction, "price": self.stock_price,
+               "settings": self.settings, "date": self.stock_date})
         return{"recAction": self.recAction, "price": self.stock_price, "settings": self.settings, "date": self.stock_date}
 
 
@@ -274,7 +329,7 @@ class StockdataInterface:
             result["stock"], result["interval"])
         # kallar på data formateraren och sparar resultat
         formatted_data = self.dataFormater.format_data(
-            MACD_stockinfo, stock_info,settings["result"]["interval"])
+            MACD_stockinfo, stock_info, settings["result"]["interval"])
         formatted_data.append(settings)
         return formatted_data
 
@@ -321,7 +376,7 @@ class DataFormater:
         # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
         macdData = MACD_stock_info
         date = self.fixTime(interval)
-        
+
         # felhantering
         date -= d.timedelta(hours=1)
         date -= d.timedelta(days=3)
@@ -339,11 +394,12 @@ class DataFormater:
 
     def fixTime(self, interval):
         currentTime = d.datetime.today()
-        tmp = currentTime.time().minute 
-        a=tmp//int(interval[:-3])
+        tmp = currentTime.time().minute
+        a = tmp//int(interval[:-3])
         currentTime = currentTime.replace(minute=a*int(interval[:-3]))
         currentTime = currentTime.replace(second=0, microsecond=0)
         return currentTime
+
 
 def setUp():
     """An initializing setup method, instances all necessary objects for testing with website"""
@@ -358,17 +414,17 @@ def setUp():
 
 
 if __name__ == "__main__":
-    api_key = "PFHGI45JG5C2X5DQ"
-    test = ApiConnector(api_key)
-    databaseInterface = DatabaseInterface(DatabaseConnector("usr", "psw"))
-    # test with Apple stock and 5min interval
-    # print(test.get_macd("AAPL", "5min"))
-    test2 = StockdataInterface("databaseInterface", ApiConnector(api_key))
-    test3= RecommendationInterface("databaseInterface", test2)
-    test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
-                            "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
-    dbConnector = DatabaseConnector("usr", "psw")
-    dbInterface = DatabaseInterface(dbConnector)
-    
-
-
+    # api_key = "PFHGI45JG5C2X5DQ"
+    # test = ApiConnector(api_key)
+    # databaseInterface = DatabaseInterface(DatabaseConnector("usr", "psw"))
+    # # test with Apple stock and 5min interval
+    # # print(test.get_macd("AAPL", "5min"))
+    # test2 = StockdataInterface("databaseInterface", ApiConnector(api_key))
+    # test3 = RecommendationInterface("databaseInterface", test2)
+    # test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
+    #                                         "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
+    # dbConnector = DatabaseConnector("usr", "psw")
+    # dbInterface = DatabaseInterface(dbConnector)
+    a = RSI()
+    a.run_recomendation(
+        {"nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
