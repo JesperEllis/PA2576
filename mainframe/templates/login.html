@@ -2,7 +2,6 @@
 <html>
     <head>
         <title>Stock Fluent</title>
-        <!-- <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}"> -->
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
@@ -14,6 +13,7 @@
 
         <!-- Latest compiled JavaScript -->
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
     </head>
     <body>
       <nav class="navbar sticky-top navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
@@ -39,41 +39,44 @@
                 <li class="nav-item">
                   <a class="nav-link" href="{{ url_for('login') }}">Login</a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+                </li>
               </ul>
         </div>     
       </nav>
-      <div class="container-fluid bg-light">
-        <div class="jumbotron text-center" style="background-color:rgb(39, 101, 218)">
-          <h1 style="color: whitesmoke;">Stock Fluent</h1>
-          <p style="color: whitesmoke;">Learn to use Algo Trading now!</p>
-        </div>
-        
-        <div id="services" class="container-fluid text-center">
-          <h2>What we offer</h2>
-          <br>
-          <div class="row slideanim slide">
-            <div class="col-sm-4">
-              <span class="glyphicon glyphicon-off logo-small"></span>
-              <h4>Algorithms</h4>
-              <br>
-              <p>Use the algorithm that fits your needs</p>
-            </div>
-            <div class="col-sm-4">
-              <img src="{{ url_for('static', filename='images/thumbs_up.png') }}" alt="logo" style="width:50px;" style="height: 50px;">
-              <span class="glyphicon glyphicon-heart logo-small"></span>
-              <h4>Recommendations</h4>
-              <br>
-              <p>Recive recommendations base on your settings</p>
-            </div>
-            <div class="col-sm-4">
-              <span class="glyphicon glyphicon-lock logo-small"></span>
-              <h4>Learn</h4>
-              <br>
-              <p>Learn to use trading algortihms</p>
-            </div>
+          <div>
+            {% if category %}
+              {% if category == "success" %}
+                <div class="alert alert-success" role="alert">
+              {% else %}
+                <div class="alert alert-danger" role="alert">
+              {% endif %}
+                <strong>Success! </strong> Welcome {{message}}!
+              </div>
+            {% endif %}
           </div>
-          <br><br>
-        </div>
+      <div id="loginForm">
+        <form class="LoginForm" action="{{url_for('login')}}" method="POST">
+            <div class="LoginDiv">
+              <h2 class="text-center">Log in</h2>     
+              <div class="form-group">
+                  <input type="text" name="email" class="form-control" placeholder="Email" required="required">
+              </div>
+              <div class="form-group">
+                  <input type="password" name="password" class="form-control" placeholder="Password" required="required">
+              </div>
+              <div class="form-group">
+                  <button type="submit" class="btn btn-primary btn-block">Log in</button>
+              </div>
+              <div class="clearfix">
+                  <label class="float-left form-check-label"><input type="checkbox"> Remember me</label>
+                  <a href="#" class="float-right">Forgot Password?</a>
+              </div> 
+            </div>      
+        </form>
       </div>
     </body>
-</html>
+    </html>
+
+     
