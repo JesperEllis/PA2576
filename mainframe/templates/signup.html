@@ -44,6 +44,10 @@
               </ul>
         </div>     
       </nav>
+        {% if exists %}
+              <div class="alert alert-danger" role="alert">
+              <strong>This email is already registered!</strong></div>
+        {% endif %}
       <div id="loginForm">
         <form class="LoginForm" action="" method="POST">
             <div class="LoginDiv">

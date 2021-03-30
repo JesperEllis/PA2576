@@ -96,6 +96,9 @@ def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fix
             if password == user.get_password():
                 user.set_authentication(True)
                 login_user(user)
+
+                next = request.args.get("next")
+
                 return redirect(url_for("Profile"))
 
         return render_template("login.html", incorrect = True)
@@ -109,6 +112,9 @@ def signup():
     if request.method == "POST":
         email = request.form['email']
         password = request.form['password']
+
+        if email in user_emails.keys():
+            return render_template("signup.html", exists = True)
         
         #Här skall det vara en databas sparning istället
         user_emails.update({email : User(email, password)})
