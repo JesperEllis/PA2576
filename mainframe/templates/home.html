@@ -36,18 +36,32 @@
                 <li class="nav-item">
                   <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                </li>
+              </ul>
+              <ul class="navbar-nav ml-auto">
+                {% if current_user.is_authenticated %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('Profile') }}">Profile</a>
+                  </li>
+                {% else %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                  </li>
+                {% endif %}
               </ul>
         </div>     
       </nav>
+      {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="alert alert-success" role="alert"><p>{{msg}}</p></div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
       <div class="container-fluid bg-light">
         <div class="jumbotron text-center" style="background-color:rgb(39, 101, 218)">
           <h1 style="color: whitesmoke;">Stock Fluent</h1>
           <p style="color: whitesmoke;">Learn to use Algo Trading now!</p>
         </div>
-        
         <div id="services" class="container-fluid text-center">
           <h2>What we offer</h2>
           <br>

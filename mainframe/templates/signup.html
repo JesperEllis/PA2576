@@ -44,33 +44,44 @@
               </ul>
         </div>     
       </nav>
-          <div>
-            {% if incorrect %}
-              <div class="alert alert-danger" role="alert">
-              <strong>Incorrect username or password!</strong></div>
-            {% endif %}
-          </div>
       <div id="loginForm">
-        <form class="LoginForm" action="{{url_for('login')}}" method="POST">
+        <form class="LoginForm" action="" method="POST">
             <div class="LoginDiv">
-              <h2 class="text-center">Login</h2>  
-              <p class="text-center">Don't have an account? <a href="{{url_for('signup')}}">Sign up!</a></p>   
+              <h2 class="text-center">Signup</h2>  
               <div class="form-group">
                   <input type="text" name="email" class="form-control" placeholder="Email" required="required">
               </div>
               <div class="form-group">
-                  <input type="password" name="password" class="form-control" placeholder="Password" required="required">
+                  <input type="password" name="password" class="form-control" id="password" placeholder="Password" required="required">
               </div>
               <div class="form-group">
-                  <button type="submit" class="btn btn-primary btn-block">Log in</button>
+                <input type="password" name="cpassword" class="form-control" id="confirm_password" placeholder="Confirm Password" required="required">
+              </div>
+              <div class="form-group">
+                  <button type="submit" class="btn btn-primary btn-block">Register</button>
               </div>
               <div class="clearfix">
-                  <label class="float-left form-check-label"><input type="checkbox"> Remember me</label>
-                  <a href="#" class="float-right">Forgot Password?</a>
+                  <label class="float-left form-check-label">Already a member?</label>
+                  <a href="{{url_for('login')}}" class="float-right">Login here!</a>
               </div> 
             </div>      
         </form>
       </div>
+      <script>
+          var password = document.getElementById("password");
+          var cpassword = document.getElementById("confirm_password");
+
+          function validatePassword(){
+              if(password.value != cpassword.value) {
+                  cpassword.setCustomValidity("Passwords don't match!");
+              } else{
+                    confirm_password.setCustomValidity('');
+              }
+          }
+
+          password.onchange = validatePassword;
+          confirm_password.onkeyup = validatePassword;
+      </script>
     </body>
     </html>
 

@@ -87,7 +87,6 @@ def recommendation():
 @app.route("/login", methods=['POST', 'GET'])
 def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
     #dbInterface.create_user()
-
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -97,20 +96,40 @@ def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fix
             if password == user.get_password():
                 user.set_authentication(True)
                 login_user(user)
-                return redirect(url_for("profile"))
+                return redirect(url_for("Profile"))
+
+        return render_template("login.html", incorrect = True)
+
     else: 
         return render_template("login.html")
+
+@app.route("/signup", methods=['POST', 'GET'])
+def signup():
+
+    if request.method == "POST":
+        email = request.form['email']
+        password = request.form['password']
+        
+        #Här skall det vara en databas sparning istället
+        user_emails.update({email : User(email, password)})
+        return render_template("login.html")
+        
+    else:
+        return render_template("signup.html")
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
+    flash("You have been logged out!")
     return redirect(url_for("home"))
 
-@app.route("/profile")
+@app.route("/Profile")
 @login_required
-def profile():
-    return render_template("profile.html") + current_user._email
+def Profile():
+    print(current_user.is_active())
+    usid = str(current_user.get_id())
+    return render_template("profile.html") + current_user._email + usid
 
 login_manager = LoginManager()
 login_manager.init_app(app)
