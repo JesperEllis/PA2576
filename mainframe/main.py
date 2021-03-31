@@ -185,17 +185,9 @@ class RecommendationInterface:
             self.algo_type = MACD()
 
     def run_algorithm(self, algo_type, settings):
-        formatted_list = self.my_stockdata_interface.get_macd_intraday(
-            algo_type, settings)
-        # kan skriva detta direkt som in parameterar men skrev så här för tydlighetens skull
-        macd_hist = formatted_list[0]
-        macd_hist_erlier = formatted_list[1]
-        stock_price = formatted_list[2]
-        date = formatted_list[3]
-        settings = formatted_list[4]
         self._create_algo(algo_type)
-        recomendation = self.algo_type.recommendationLogic(
-            macd_hist, macd_hist_erlier, stock_price, date, settings)
+        recomendation = self.algo_type.run_recomendation(
+            settings, self.db_interface)
         self.db_interface.set_recommendation(recomendation)
         # return "Message from backend"
 
@@ -215,13 +207,14 @@ class MACD(Algorithm):
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
         pass
 
-    # def run_recomendation(self, settings):
-    #     # get closingPrice, date, fastEMAList, slowEMAList, closingpriceErlier, fastEMAListErlier, slowEMAListErlier
-    #     MACD_Hist = self.create_Hist(closingPrice, fastEMAList, slowEMAList)
-    #     MACD_HistErlier = self.create_Hist(
-    #         closingpriceErlier, fastEMAListErlier, slowEMAListErlier)
-    #     self.recommendationLogic(
-    #         MACD_Hist, MACD_HistErlier, closingPrice, date, settings)
+    def run_recomendation(self, settings, db_interface):
+        # get closingPrice, date, fastEMAList, slowEMAList, closingpriceErlier, fastEMAListErlier, slowEMAListErlier
+        result = db_interface.get_recommendations(settings)
+        MACD_Hist = self.create_Hist(
+            result["closingPrice"], result["fastEMAList"], ["slowEMAList"])
+        MACD_HistErlier = self.create_Hist(result["closingpriceErlier"], result["fastEMAListErlier"], result["slowEMAListErlier"})
+        self.recommendationLogic(
+            MACD_Hist, MACD_HistErlier, result["closingPrice"], result["date"], result["settings"])
 
     def create_Hist(self, closingPrice, fastEMAList, slowEMAList):
         fastAvrege = sum(fastEMAList)/len(fastEMAList)
@@ -231,9 +224,6 @@ class MACD(Algorithm):
         slowEMA = closingPrice * 2 / \
             len(slowEMAList)+slowAvrege*(1-(2/(len(slowEMAList)+1)))
         Hist = fastEMA-slowEMA
-        print(fastEMA)
-        print(slowEMA)
-        print(Hist)
         return Hist
 
     def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date, settings):
@@ -266,24 +256,25 @@ class RSI(Algorithm):
     def __init__(self):
         pass
 
-    def run_recomendation(self, settings):
+    def run_recomendation(self, settings, db_interface):
         # get nrPeriod st List med periodlength mellanrum
-        dataList = [[459.99, 448.85, 446.06, 450.81, 442.8], [
-            459.99, 448.85, 446.06, 450.81, 442.8], [459.99, 448.85, 446.06, 450.81, 442.8]]
-        avregeGain, avregeLoss = 1, 1
+        result = db_interface.get_recomendation_info(settings)
+        dataList = [[459.99, 448.85, 446.06, 450.81, 440.8], [
+            500.99, 448.85, 446.06, 450.81, 600.8], [450.99, 448.85, 446.06, 450.81, 442.8]]
+        avregeGain, avregeLoss = 0, 0
         for data in dataList:
-            avrege = sum(data)/len(data)
-            print(avrege)
+            avrege = data[0]-data[-1]
             if avrege >= 0:
-                avregeGain += avrege
+                avregeGain += abs(avrege)
             else:
-                avregeLoss += avrege
-
-        totalAvregeGain = avregeGain/settings["nrPeriod"]
-        totalAvregeLoss = avregeLoss/settings["nrPeriod"]
-        RSI = 100 - (100/(1+(totalAvregeGain/totalAvregeLoss)))
-        print(RSI)
-        self.recommendationLogic(RSI, settings, 12, "2020-11-11 12:22")
+                avregeLoss += abs(avrege)
+        if avregeLoss != 0:
+            RS = avregeGain/avregeLoss
+            RSI = 100 - (100/(1+(RS)))
+        else:
+            RSI = 100
+        self.recommendationLogic(
+            RSI, settings, result["closingPrice"], result["date"])
 
     def recommendationLogic(self, RSI, settings, stock_price, date):
         if RSI < settings["buySignal"]:
@@ -293,6 +284,11 @@ class RSI(Algorithm):
         elif RSI > settings["sellSignal"]:
             rec = Recommendation("Sell", stock_price, date, settings)
             return rec.get_recomendation_info()
+
+
+class FibonacciRetracement(Algorithm):
+    def __init__(self):
+        pass
 
 
 class Recommendation:
@@ -368,37 +364,37 @@ class ApiConnector:
         return self.time_app.get_intraday(stock, time_interval, outputsize="full")
 
 
-class DataFormater:
-    def __init__(self) -> None:
-        pass
+# class DataFormater:
+#     def __init__(self) -> None:
+#         pass
 
-    def format_data(self, MACD_stock_info, stock_info, interval):
-        # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
-        macdData = MACD_stock_info
-        date = self.fixTime(interval)
+#     def format_data(self, MACD_stock_info, stock_info, interval):
+#         # Unpacks the data and gets the MACD_Histogram data and data from the MACD_Histogram 1 min eralier
+#         macdData = MACD_stock_info
+#         date = self.fixTime(interval)
 
-        # felhantering
-        date -= d.timedelta(hours=1)
-        date -= d.timedelta(days=3)
-        # in parameter tids intervall
-        dateErlier = date - d.timedelta(minutes=int(interval[:-3]))
-        date1 = date.strftime('%Y-%m-%d %H:%M:00')
-        date = date.strftime('%Y-%m-%d %H:%M')
-        dateErlier = dateErlier.strftime('%Y-%m-%d %H:%M')
-        macd_dateInfo = macdData[0][date]
-        macd_dateInfoErlier = macdData[0][dateErlier]
-        MACD_Hist = float(macd_dateInfo["MACD_Hist"])
-        MACD_HistErlier = float(macd_dateInfoErlier["MACD_Hist"])
-        stockPrice = float(stock_info[0][date1]["4. close"])
-        return [MACD_Hist, MACD_HistErlier, stockPrice, date1]
+#         # felhantering
+#         date -= d.timedelta(hours=1)
+#         date -= d.timedelta(days=3)
+#         # in parameter tids intervall
+#         dateErlier = date - d.timedelta(minutes=int(interval[:-3]))
+#         date1 = date.strftime('%Y-%m-%d %H:%M:00')
+#         date = date.strftime('%Y-%m-%d %H:%M')
+#         dateErlier = dateErlier.strftime('%Y-%m-%d %H:%M')
+#         macd_dateInfo = macdData[0][date]
+#         macd_dateInfoErlier = macdData[0][dateErlier]
+#         MACD_Hist = float(macd_dateInfo["MACD_Hist"])
+#         MACD_HistErlier = float(macd_dateInfoErlier["MACD_Hist"])
+#         stockPrice = float(stock_info[0][date1]["4. close"])
+#         return [MACD_Hist, MACD_HistErlier, stockPrice, date1]
 
-    def fixTime(self, interval):
-        currentTime = d.datetime.today()
-        tmp = currentTime.time().minute
-        a = tmp//int(interval[:-3])
-        currentTime = currentTime.replace(minute=a*int(interval[:-3]))
-        currentTime = currentTime.replace(second=0, microsecond=0)
-        return currentTime
+#     def fixTime(self, interval):
+#         currentTime = d.datetime.today()
+#         tmp = currentTime.time().minute
+#         a = tmp//int(interval[:-3])
+#         currentTime = currentTime.replace(minute=a*int(interval[:-3]))
+#         currentTime = currentTime.replace(second=0, microsecond=0)
+#         return currentTime
 
 
 def setUp():
