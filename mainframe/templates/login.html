@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Stock Fluent | Profile</title>
-        <!-- <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}"> -->
+        <title>Stock Fluent</title>
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
@@ -14,6 +13,7 @@
 
         <!-- Latest compiled JavaScript -->
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
     </head>
     <body>
       <nav class="navbar sticky-top navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
@@ -28,7 +28,7 @@
         <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                  <a class="nav-link active" href="{{ url_for('home') }}">Home</a>
+                  <a class="nav-link" href="{{ url_for('home') }}">Home</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="{{ url_for('Algorithm') }}">Algorithm</a>
@@ -39,11 +39,39 @@
               </ul>
               <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('Profile') }}">Profile</a>
+                  <a class="nav-link active" href="{{ url_for('login') }}">Login</a>
                 </li>
               </ul>
         </div>     
       </nav>
-      <a href="{{ url_for('logout') }}"><button type="button" class="btn btn-primary">Logout</button></a>
+          <div>
+            {% if incorrect %}
+              <div class="alert alert-danger" role="alert">
+              <strong>Incorrect username or password!</strong></div>
+            {% endif %}
+          </div>
+      <div id="loginForm">
+        <form class="LoginForm" action="{{url_for('login')}}" method="POST">
+            <div class="LoginDiv">
+              <h2 class="text-center">Login</h2>  
+              <p class="text-center">Don't have an account? <a href="{{url_for('signup')}}">Sign up!</a></p>   
+              <div class="form-group">
+                  <input type="text" name="email" class="form-control" placeholder="Email" required="required">
+              </div>
+              <div class="form-group">
+                  <input type="password" name="password" class="form-control" placeholder="Password" required="required">
+              </div>
+              <div class="form-group">
+                  <button type="submit" class="btn btn-primary btn-block">Log in</button>
+              </div>
+              <div class="clearfix">
+                  <label class="float-left form-check-label"><input type="checkbox"> Remember me</label>
+                  <a href="#" class="float-right">Forgot Password?</a>
+              </div> 
+            </div>      
+        </form>
+      </div>
     </body>
-</html>
+    </html>
+
+     
