@@ -209,12 +209,13 @@ class MACD(Algorithm):
 
     def run_recomendation(self, settings, db_interface):
         # get closingPrice, date, fastEMAList, slowEMAList, closingpriceErlier, fastEMAListErlier, slowEMAListErlier
-        result = db_interface.get_recommendations(settings)
+        result = db_interface.get_stockdata(settings)
         MACD_Hist = self.create_Hist(
             result["closingPrice"], result["fastEMAList"], ["slowEMAList"])
-        MACD_HistErlier = self.create_Hist(result["closingpriceErlier"], result["fastEMAListErlier"], result["slowEMAListErlier"})
+        MACD_HistErlier = self.create_Hist(
+            result["closingpriceErlier"], result["fastEMAListErlier"], result["slowEMAListErlier"])
         self.recommendationLogic(
-            MACD_Hist, MACD_HistErlier, result["closingPrice"], result["date"], result["settings"])
+            MACD_Hist, MACD_HistErlier, result["closingPrice"], result["date"], settings)
 
     def create_Hist(self, closingPrice, fastEMAList, slowEMAList):
         fastAvrege = sum(fastEMAList)/len(fastEMAList)
@@ -259,8 +260,8 @@ class RSI(Algorithm):
     def run_recomendation(self, settings, db_interface):
         # get nrPeriod st List med periodlength mellanrum
         result = db_interface.get_recomendation_info(settings)
-        dataList = [[459.99, 448.85, 446.06, 450.81, 440.8], [
-            500.99, 448.85, 446.06, 450.81, 600.8], [450.99, 448.85, 446.06, 450.81, 442.8]]
+
+        dataList = [[459.99, 440.8], [440.8, 600.8], [600.8, 442.8]]
         avregeGain, avregeLoss = 0, 0
         for data in dataList:
             avrege = data[0]-data[-1]
@@ -423,4 +424,4 @@ if __name__ == "__main__":
     # dbInterface = DatabaseInterface(dbConnector)
     a = RSI()
     a.run_recomendation(
-        {"nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
+        {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
