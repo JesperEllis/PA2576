@@ -192,7 +192,7 @@ class RecommendationInterface:
 
     def run_algorithm(self, algo_type, settings):
         a = self.db_interface.set_algoritm(algotype, settings)
-        # a en lista med algoid och True False
+        # a en lista med algoid och True False [algoID,Bool]
         if not a[1]:
             algo = self._create_algo(a[0], algo_type, settings)
             algo.start()
@@ -477,5 +477,5 @@ if __name__ == "__main__":
     # a = RSI()
     # a.run_recomendation(
     #     {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
-{"MACD", {"result": {
-        "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}: MACD()}
+# {"MACD", {"result": {
+#         "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}: MACD()}
