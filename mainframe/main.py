@@ -9,6 +9,7 @@ from os import path
 import mysql.connector as mysql
 from sshtunnel import SSHTunnelForwarder
 import datetime
+from threading import Thread, Event
 
 
 class SystemManager:
@@ -49,8 +50,8 @@ class DatabaseInterface:
         pass
 
     def get_stockdata(self, stock_name):
-        "get connection, then call apropiate procedure"
-        pass
+        return [[(datetime.datetime(2021, 3, 20, 12, 45), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 43), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 41), 121.27)], [(datetime.datetime(2021, 3,
+                                                                                                                                                                                                20, 12, 39), 122.49)]]
 
     def set_stockdata(self, stock_name, stock_info):
         "get connection, then call apropiate procedure"
@@ -166,13 +167,11 @@ class MailSender:
 
 class RecommendationInterface:
 
-    def __init__(self, databaseInterface, stockdataInterface):
-
+    def __init__(self, databaseInterface):
         self.db_interface = databaseInterface
         self.my_algo_collection = {
             "MACD": ["stock, interval, fastperiod, slowperiod, signalperiod"]}
         # tillfällig lösning för mvp, kan tas bort när vi kan hämta api resultatet från databas
-        self.my_stockdata_interface = stockdataInterface
 
     def get_available_algortihms(self):
         return self.my_algo_collection
@@ -184,38 +183,69 @@ class RecommendationInterface:
         if algo_type == "MACD":
             self.algo_type = MACD()
 
+        elif algo_type == "RSI":
+            self.algo_type = RSI()
+
     def run_algorithm(self, algo_type, settings):
-        self._create_algo(algo_type)
-        recomendation = self.algo_type.run_recomendation(
-            settings, self.db_interface)
-        self.db_interface.set_recommendation(recomendation)
+        for i in range(3):
+            self._create_algo(algo_type)
+            self.algo_type.run_recomendation(
+                settings, self.db_interface)
+
         # return "Message from backend"
 
 
-class Algorithm:
+class Algorithm(Thread):
     @abstractmethod
     def __init__(self):
-        raise NotImplementedError
+        Thread.__init__(self)
 
     @abstractmethod
     def recommendationLogic(self, settings, stock_info):
-        raise NotImplementedError
+        pass
 
 
 class MACD(Algorithm):
     def __init__(self):
+        super().__init__()
+        self.start()
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
         pass
 
     def run_recomendation(self, settings, db_interface):
-        # get closingPrice, date, fastEMAList, slowEMAList, closingpriceErlier, fastEMAListErlier, slowEMAListErlier
-        result = db_interface.get_stockdata(settings)
-        MACD_Hist = self.create_Hist(
-            result["closingPrice"], result["fastEMAList"], ["slowEMAList"])
-        MACD_HistErlier = self.create_Hist(
-            result["closingpriceErlier"], result["fastEMAListErlier"], result["slowEMAListErlier"])
-        self.recommendationLogic(
-            MACD_Hist, MACD_HistErlier, result["closingPrice"], result["date"], settings)
+        i = 0
+        while self.is_active() == True and i < 10:
+            result = db_interface.get_stockdata(settings)
+            resultErlier = db_interface.get_stockdata(settings)[1:]
+            date, closePrice, fastEMAList, slowEMAList = self.unpackData(
+                result, settings)
+            dateErlier, closePriceErlier, fastEMAListErlier, slowEMAListErlier = self.unpackData(
+                resultErlier, settings)
+            MACD_Hist = self.create_Hist(closePrice, fastEMAList, slowEMAList)
+            MACD_HistErlier = self.create_Hist(
+                closePriceErlier, fastEMAListErlier, slowEMAListErlier)
+            recommendation = self.recommendationLogic(
+                MACD_Hist, MACD_HistErlier, closePrice, date, settings)
+            # db_interface.set_recommendation(recommendation)
+            time.sleep(3)
+            i += 1
+
+    def is_active(self):
+        return True
+
+    def unpackData(self, data, settings):
+        fastEMAList = []
+        slowEMAList = []
+        date = data[0][0][0]
+        date = date.strftime('%Y-%m-%d %H:%M')
+        closePrice = data[0][0][1]
+        fastdata = data[:settings["result"]["fastperiod"]]
+        slowdata = data[:settings["result"]["slowperiod"]]
+        for value in fastdata:
+            fastEMAList.append(value[0][1])
+        for value in slowdata:
+            slowEMAList.append(value[0][1])
+        return date, closePrice, fastEMAList, slowEMAList
 
     def create_Hist(self, closingPrice, fastEMAList, slowEMAList):
         fastAvrege = sum(fastEMAList)/len(fastEMAList)
@@ -314,7 +344,7 @@ class StockdataInterface:
     def __init__(self, databaseInterface, api_connector):
         self.db_interface = databaseInterface
         self.my_api_connector = api_connector
-        self.dataFormater = DataFormater()
+        # self.dataFormater = DataFormater()
 
     def get_macd_intraday(self, algo_type, settings):
         """Tillfällig metod för att lösa mvp, gör två anrop till api och ersätter där med while loopen i RecommendationInteface"""
@@ -418,10 +448,13 @@ if __name__ == "__main__":
     # # print(test.get_macd("AAPL", "5min"))
     # test2 = StockdataInterface("databaseInterface", ApiConnector(api_key))
     # test3 = RecommendationInterface("databaseInterface", test2)
-    # test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
-    #                                         "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
+
+    DB = DatabaseInterface("Hej")
+    test3 = RecommendationInterface(DB)
+    test3.run_algorithm("MACD", {"result": {
+        "stock": "AAPL", "interval": "1min", "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
     # dbConnector = DatabaseConnector("usr", "psw")
     # dbInterface = DatabaseInterface(dbConnector)
-    a = RSI()
-    a.run_recomendation(
-        {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
+    # a = RSI()
+    # a.run_recomendation(
+    #     {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
