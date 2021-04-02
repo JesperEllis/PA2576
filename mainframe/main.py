@@ -51,7 +51,7 @@ class DatabaseInterface:
 
     def get_stockdata(self, stock_name):
         return [[(datetime.datetime(2021, 3, 20, 12, 45), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 43), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 41), 121.27)], [(datetime.datetime(2021, 3,
-                                                                                                                                                                                                20, 12, 39), 122.49)]]
+                                                                                                                                                                                                20, 12, 39), 122.49)], [(datetime.datetime(2021, 3, 20, 12, 43), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 41), 121.27)], [(datetime.datetime(2021, 3, 20, 12, 39), 122.49)]]
 
     def set_stockdata(self, stock_name, stock_info):
         "get connection, then call apropiate procedure"
@@ -168,6 +168,7 @@ class MailSender:
 class RecommendationInterface:
 
     def __init__(self, databaseInterface):
+        self.avalible_algo = []
         self.db_interface = databaseInterface
         self.my_algo_collection = {
             "MACD": ["stock, interval, fastperiod, slowperiod, signalperiod"]}
@@ -179,42 +180,63 @@ class RecommendationInterface:
     def get_algo_settings(self, algo_type):
         return self.my_algo_collection[algo_type]
 
-    def _create_algo(self, algo_type):
+    def _create_algo(self, algoID, algo_type, settings):
         if algo_type == "MACD":
-            self.algo_type = MACD()
+            new_algo = MACD(settings, algoID, self.db_interface)
+            self.avalible_algo.append(new_algo)
 
         elif algo_type == "RSI":
             self.algo_type = RSI()
 
+        return new_algo
+
     def run_algorithm(self, algo_type, settings):
-        for i in range(3):
-            self._create_algo(algo_type)
-            self.algo_type.run_recomendation(
+        a = self.db_interface.set_algoritm(algotype, settings)
+        # a en lista med algoid och True False
+        if not a[1]:
+            algo = self._create_algo(a[0], algo_type, settings)
+            algo.start()
+            algo.run_recomendation(
                 settings, self.db_interface)
+        return algoID
+
+    def kill(self, algoID):
+        for algo in self.avalible_algo:
+            if algoID == algo.get_ID():
+                algo.kill()
 
         # return "Message from backend"
 
 
 class Algorithm(Thread):
     @abstractmethod
-    def __init__(self):
+    def __init__(self, settings, DB, algoID):
         Thread.__init__(self)
+        self.is_alive = True
+        self.settings = settings
+        self.DB = DB
+        self.algoID = algoID
 
     @abstractmethod
     def recommendationLogic(self, settings, stock_info):
         pass
 
+    def kill(self):
+        self.is_alive = False
+
+    def is_alive(self):
+        return self.is_alive
+
 
 class MACD(Algorithm):
     def __init__(self):
         super().__init__()
-        self.start()
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
         pass
 
     def run_recomendation(self, settings, db_interface):
         i = 0
-        while self.is_active() == True and i < 10:
+        while self.is_alive == True and i < 1:
             result = db_interface.get_stockdata(settings)
             resultErlier = db_interface.get_stockdata(settings)[1:]
             date, closePrice, fastEMAList, slowEMAList = self.unpackData(
@@ -229,9 +251,6 @@ class MACD(Algorithm):
             # db_interface.set_recommendation(recommendation)
             time.sleep(3)
             i += 1
-
-    def is_active(self):
-        return True
 
     def unpackData(self, data, settings):
         fastEMAList = []
@@ -452,9 +471,11 @@ if __name__ == "__main__":
     DB = DatabaseInterface("Hej")
     test3 = RecommendationInterface(DB)
     test3.run_algorithm("MACD", {"result": {
-        "stock": "AAPL", "interval": "1min", "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
+        "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}})
     # dbConnector = DatabaseConnector("usr", "psw")
     # dbInterface = DatabaseInterface(dbConnector)
     # a = RSI()
     # a.run_recomendation(
     #     {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
+{"MACD", {"result": {
+        "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}: MACD()}
