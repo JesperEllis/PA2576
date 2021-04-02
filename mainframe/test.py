@@ -30,6 +30,7 @@ time_app = TimeSeries(api_key)
 
 tmpList = []
 tmp = time_app.get_intraday('AAPL', '1min', outputsize="compact")
+print(tmp[1]['2. Symbol'])
 for items in tmp[0].keys():
     cursor.callproc("insertStockData",['AAPL',items,tmp[0][items]["4. close"]])
     conn.commit()
