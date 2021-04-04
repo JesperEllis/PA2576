@@ -65,14 +65,17 @@ class DatabaseInterface:
         return self.connector.data_handler('getRecommendation', [stockId, interval])
         #return recommendation
         
-
-
     def set_recommendation(self, recommendation):
         print(recommendation)
         self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
                                                              recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
         print("Set_recommendation")
         "get connection, then call apropiate procedure"
+
+    def set_algorithm(self, settings, stockID):
+        ''' Returns a list with the algoID on the first position and a bool telling if the algorithm already existed or not'''
+        algoID = self.connector.data_handler('setAlgorithm'[settings, stockID])
+        return algoID
 
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
