@@ -71,6 +71,9 @@ class DatabaseInterface:
         print("Set_recommendation")
         "get connection, then call apropiate procedure"
 
+    def set_algoritm(self, algo_type, settings):
+        return ["1", False]
+
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
         pass
@@ -191,14 +194,13 @@ class RecommendationInterface:
         return new_algo
 
     def run_algorithm(self, algo_type, settings):
-        a = self.db_interface.set_algoritm(algotype, settings)
+        a = self.db_interface.set_algoritm(algo_type, settings)
         # a en lista med algoid och True False [algoID,Bool]
         if not a[1]:
             algo = self._create_algo(a[0], algo_type, settings)
             algo.start()
-            algo.run_recomendation(
-                settings, self.db_interface)
-        return algoID
+            algo.run_recomendation()
+        return a[0]
 
     def kill(self, algoID):
         for algo in self.avalible_algo:
@@ -212,54 +214,55 @@ class Algorithm(Thread):
     @abstractmethod
     def __init__(self, settings, DB, algoID):
         Thread.__init__(self)
-        self.is_alive = True
+        self.alive = True
         self.settings = settings
-        self.DB = DB
+        self.db_interface = DB
         self.algoID = algoID
 
     @abstractmethod
     def recommendationLogic(self, settings, stock_info):
         pass
 
+    @abstractmethod
     def kill(self):
         self.is_alive = False
 
+    @abstractmethod
     def is_alive(self):
-        return self.is_alive
+        return self.alive
 
 
 class MACD(Algorithm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, settings, DB, algoID):
+        super().__init__(settings, DB, algoID)
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
-        pass
 
-    def run_recomendation(self, settings, db_interface):
+    def run_recomendation(self):
         i = 0
         while self.is_alive == True and i < 1:
-            result = db_interface.get_stockdata(settings)
-            resultErlier = db_interface.get_stockdata(settings)[1:]
+            result = db_interface.get_stockdata(self.settings)
+            resultErlier = db_interface.get_stockdata(self.settings)[1:]
             date, closePrice, fastEMAList, slowEMAList = self.unpackData(
-                result, settings)
+                result, self.settings)
             dateErlier, closePriceErlier, fastEMAListErlier, slowEMAListErlier = self.unpackData(
-                resultErlier, settings)
+                resultErlier, self.settings)
             MACD_Hist = self.create_Hist(closePrice, fastEMAList, slowEMAList)
             MACD_HistErlier = self.create_Hist(
                 closePriceErlier, fastEMAListErlier, slowEMAListErlier)
             recommendation = self.recommendationLogic(
-                MACD_Hist, MACD_HistErlier, closePrice, date, settings)
+                MACD_Hist, MACD_HistErlier, closePrice, date, self.settings)
             # db_interface.set_recommendation(recommendation)
             time.sleep(3)
             i += 1
 
-    def unpackData(self, data, settings):
+    def unpackData(self, data):
         fastEMAList = []
         slowEMAList = []
         date = data[0][0][0]
         date = date.strftime('%Y-%m-%d %H:%M')
         closePrice = data[0][0][1]
-        fastdata = data[:settings["result"]["fastperiod"]]
-        slowdata = data[:settings["result"]["slowperiod"]]
+        fastdata = data[:self.settings["result"]["fastperiod"]]
+        slowdata = data[:self.settings["result"]["slowperiod"]]
         for value in fastdata:
             fastEMAList.append(value[0][1])
         for value in slowdata:
@@ -276,7 +279,7 @@ class MACD(Algorithm):
         Hist = fastEMA-slowEMA
         return Hist
 
-    def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date, settings):
+    def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date):
         '''The lodgic behind the recomendations. If the Histogram
         is 0 it is time to buy or sell,
         If the Histogram is positive it is bull market and
@@ -284,20 +287,20 @@ class MACD(Algorithm):
 
         if MACD_Hist > 0 and (MACD_Hist and MACD_HistErlier > 0):
             rec = Recommendation(
-                "Bullich", stock_price, date, settings)
+                "Bullich", stock_price, date, self.settings)
             return rec.get_recomendation_info()
 
         elif MACD_Hist < 0 and (MACD_Hist and MACD_HistErlier < 0):
             rec = Recommendation(
-                "Bearich", stock_price, date, settings)
+                "Bearich", stock_price, date, self.settings)
             return rec.get_recomendation_info()
 
         elif (MACD_Hist == 0 and MACD_HistErlier > 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
-            rec = Recommendation("Sell", stock_price, date, settings)
+            rec = Recommendation("Sell", stock_price, date, self.settings)
             return rec.get_recomendation_info()
 
         elif (MACD_Hist == 0 and MACD_HistErlier < 0) or (MACD_Hist >= 0 and MACD_HistErlier <= 0):
-            rec = Recommendation("Buy", stock_price, date, settings)
+            rec = Recommendation("Buy", stock_price, date, self.settings)
             return rec.get_recomendation_info()
 
 
@@ -306,11 +309,9 @@ class RSI(Algorithm):
     def __init__(self):
         pass
 
-    def run_recomendation(self, settings, db_interface):
+    def run_recomendation(self):
         # get nrPeriod st List med periodlength mellanrum
-        result = db_interface.get_recomendation_info(settings)
-
-        dataList = [[459.99, 440.8], [440.8, 600.8], [600.8, 442.8]]
+        dataList = self.db_interface.get_recomendation_info(self.settings)
         avregeGain, avregeLoss = 0, 0
         for data in dataList:
             avrege = data[0]-data[-1]
@@ -324,7 +325,7 @@ class RSI(Algorithm):
         else:
             RSI = 100
         self.recommendationLogic(
-            RSI, settings, result["closingPrice"], result["date"])
+            RSI, self.settings, result["closingPrice"], result["date"])
 
     def recommendationLogic(self, RSI, settings, stock_price, date):
         if RSI < settings["buySignal"]:
