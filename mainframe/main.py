@@ -185,7 +185,7 @@ class RecommendationInterface:
 
     def _create_algo(self, algoID, algo_type, settings):
         if algo_type == "MACD":
-            new_algo = MACD(settings, algoID, self.db_interface)
+            new_algo = MACD(settings, self.db_interface, algoID)
             self.avalible_algo.append(new_algo)
 
         elif algo_type == "RSI":
@@ -239,20 +239,20 @@ class MACD(Algorithm):
 
     def run_recomendation(self):
         i = 0
-        while self.is_alive == True and i < 1:
-            result = db_interface.get_stockdata(self.settings)
-            resultErlier = db_interface.get_stockdata(self.settings)[1:]
+        while self.alive == True and i < 2:
+            result = self.db_interface.get_stockdata(self.settings)
+            resultErlier = self.db_interface.get_stockdata(self.settings)[1:]
             date, closePrice, fastEMAList, slowEMAList = self.unpackData(
-                result, self.settings)
+                result)
             dateErlier, closePriceErlier, fastEMAListErlier, slowEMAListErlier = self.unpackData(
-                resultErlier, self.settings)
+                resultErlier)
             MACD_Hist = self.create_Hist(closePrice, fastEMAList, slowEMAList)
             MACD_HistErlier = self.create_Hist(
                 closePriceErlier, fastEMAListErlier, slowEMAListErlier)
             recommendation = self.recommendationLogic(
-                MACD_Hist, MACD_HistErlier, closePrice, date, self.settings)
+                MACD_Hist, MACD_HistErlier, closePrice, date)
             # db_interface.set_recommendation(recommendation)
-            time.sleep(3)
+            time.sleep(10)
             i += 1
 
     def unpackData(self, data):
@@ -326,6 +326,9 @@ class RSI(Algorithm):
             RSI = 100
         self.recommendationLogic(
             RSI, self.settings, result["closingPrice"], result["date"])
+
+    def unpackData(self, data):
+        pass
 
     def recommendationLogic(self, RSI, settings, stock_price, date):
         if RSI < settings["buySignal"]:
@@ -455,7 +458,7 @@ def setUp():
     dbInterface = DatabaseInterface(dbConnector)
     stockInterface = StockdataInterface(dbInterface, apiConnector)
     proInter = ProfileInterface(dbInterface)
-    recInter = RecommendationInterface(dbInterface, stockInterface)
+    recInter = RecommendationInterface(dbInterface)
     sysManager = SystemManager(proInter, recInter, stockInterface)
     return sysManager, dbInterface
 
@@ -471,8 +474,13 @@ if __name__ == "__main__":
 
     DB = DatabaseInterface("Hej")
     test3 = RecommendationInterface(DB)
-    test3.run_algorithm("MACD", {"result": {
-        "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}})
+    a = test3.run_algorithm("MACD", {"result": {
+                            "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6}})
+    print(a)
+    b = test3.run_algorithm("MACD", {"result": {
+                            "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
+    print(b)
+    # print(threading.active_count())
     # dbConnector = DatabaseConnector("usr", "psw")
     # dbInterface = DatabaseInterface(dbConnector)
     # a = RSI()
