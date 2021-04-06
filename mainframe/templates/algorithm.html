@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>Stock Fluent</title>
-        <!-- <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}"> -->
+        <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
@@ -16,59 +16,111 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <nav class="navbar sticky-top navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
-            <!-- Brand/logo -->
-            <a class="navbar-brand" href="#">
-              <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
-            </a>
-            <!-- Links -->
+      <nav class="navbar sticky-top navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
+        <!-- Brand/logo -->
+        <a class="navbar-brand" href="#">
+          <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
             <ul class="navbar-nav">
-              <li class="nav-item">
-                <a class="nav-link active" href="{{ url_for('home') }}">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('Algorithm') }}">Algorithm</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
-              </li>
-            </ul>
-        </nav>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="{{ url_for('Algorithm') }}">Algorithms</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
+                </li>
+              </ul>
+              <ul class="navbar-nav ml-auto">
+                {% if current_user.is_authenticated %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('Profile') }}">Profile</a>
+                  </li>
+                {% else %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                  </li>
+                {% endif %}
+              </ul>
+        </div>     
+      </nav>
+
+      <!-- <div class="jumbotron" style="background-color: white; margin-bottom: 0px;">
+        <h1 class="display-4">Choose your algorithm</h1>
+        <p class="lead">Choose and algorithm based on your preference. Each algorithm is a different indicator with individual strength and weaknesses, choose carefully.</p>
+        <hr class="my-4">
+      </div> -->
 
         <div class="container-fluid text-center">
             <br>
-          <h2>Available Trading Algorithms</h2>
-          <br>
-          <form action="" method="POST">
-            <div class="row slideanim slide">
-                <br>
-
-                <div class="col-sm-4">
-                <span class="glyphicon glyphicon-off logo-small"></span>
-                <h4>MACD</h4>
-                <p>Something about MACD</p>
-                <input class="btn btn-primary" type="submit" name="algo" value="MACD">
+            <!-- <div class="row slideanim slide">
+                <div class="col-sm-4 border rounded">
+                  <h4>MACD</h4>
+                  <p>Something about MACD</p>
+                  <a href="{{ url_for('MACD') }}"><button type="button" class="btn btn-primary">Choose</button></a>
                 </div>
-
-                <div class="col-sm-4">
-                <span class="glyphicon glyphicon-heart logo-small"></span>
-                <h4>Algo 2</h4>
-                <p>Something about algo 2</p>
-                <input class="btn btn-primary" type="submit" name="algo" value="Algo 2">
+                <div class="col-sm-4 border rounded">
+                  <h4>RSI</h4>
+                  <p>Something about RSI</p>
+                  <a href="{{ url_for('RSI') }}"><button type="button" class="btn btn-primary">Choose</button></a>
                 </div>
-                <div class="col-sm-4">
-                <span class="glyphicon glyphicon-lock logo-small"></span>
-                <h4>Algo 3</h4>
-                <p>Something about alog 3</p>
-                <input class="btn btn-primary" type="submit" name="algo" value="Algo 3">
+                <div class="col-sm-4 border rounded">
+                  <h4>Algo 3</h4>
+                  <p>Something about alog 3</p>
+                  <a href=""><button type="button" class="btn btn-primary">Choose</button></a>
                 </div>
+            </div> -->
+            <div class="row">
+              <div class="col-sm-4">
+                <div class="card">
+                  <h5 class="card-header">Relative Strength Index</h5>
+                  <img class="card-img-top" src="{{ url_for('static', filename='images/rsi.jpg') }}" alt="Card image cap">
+                  <div class="card-body">
+                    <h5 class="card-title">Special title treatment</h5>
+                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                    <a href="{{ url_for('RSI') }}" class="btn btn-primary">Customize</a>
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item" style="color: rgb(100, 145, 50);">
+                      <p>Strong indicator on non-volatile and safe stocks.</p>
+                    </li>
+                    <li class="list-group-item" style="color: rgb(214, 28, 28)">
+                      <p>Might give false indications on a very trending stock.</p>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-sm-4">
+                <div class="card">
+                  <div class="card-header">
+                    MACD
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">Special title treatment</h5>
+                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-4">
+                <div class="card">
+                  <div class="card-header">
+                    Featured
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">Special title treatment</h5>
+                    <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                  </div>
+                </div>
+              </div>
             </div>
-        </form>
-          <br><br>
         </div>
-      </div>
     </body>
 </html>
