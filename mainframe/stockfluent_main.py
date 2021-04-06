@@ -22,16 +22,8 @@ app.secret_key = "sotck45&%204()ON)????=)(/&&"
 def home():
     return render_template('home.html')
 
-@app.route("/Algorithm", methods=["GET", "POST"] )
-def Algorithm():
-    if request.method == "POST":
-        if request.form["algo"] == "MACD":
-            return redirect(url_for("MACD"), code=302)
-        elif request.form["algo"] == "Algo 2":
-            return redirect(url_for("Algo2"), code=302)
-        elif request.form["algo"] == "Algo 3":
-            return redirect(url_for("Algo3"), code=302)
-            
+@app.route("/Algorithm")
+def Algorithm():   
     return render_template("algorithm.html")
 
 
@@ -54,9 +46,9 @@ def MACD():
         cat = "success"
     return render_template('macd.html', message= msg, category=cat)
 
-@app.route("/Algorithm/Algo2")
-def Algo2():
-    return "Algo 2"
+@app.route("/Algorithm/RSI")
+def RSI():
+    return "RSI"
 
 @app.route("/Algorithm/Algo3")
 def Algo3():
