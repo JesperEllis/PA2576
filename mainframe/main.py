@@ -65,7 +65,6 @@ class DatabaseInterface:
         # return recommendation
 
     def set_recommendation(self, recommendation):
-        print(recommendation)
         self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
                                                              recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
         print("Set_recommendation")
@@ -225,6 +224,10 @@ class Algorithm(Thread):
         pass
 
     @abstractmethod
+    def run(self):
+        pass
+
+    @abstractmethod
     def kill(self):
         self.is_alive = False
 
@@ -311,22 +314,27 @@ class RSI(Algorithm):
         super().__init__(settings, DB, algoID)
 
     def run(self):
-        # get nrPeriod st List med periodlength mellanrum
-        dataList = self.db_interface.get_stockdata(self.settings)
-        dataList, closingPrice, date = self.unpackData(dataList)
-        avregeGain, avregeLoss = 0, 0
-        for data in dataList:
-            avrege = data[0]-data[-1]
-            if avrege >= 0:
-                avregeGain += abs(avrege)
+        i = 0
+        while self.alive == True and i < 2:
+            # get nrPeriod st List med periodlength mellanrum
+            dataList = self.db_interface.get_stockdata(self.settings)
+            dataList, closingPrice, date = self.unpackData(dataList)
+            avregeGain, avregeLoss = 0, 0
+            for data in dataList:
+                avrege = data[0]-data[-1]
+                if avrege >= 0:
+                    avregeGain += abs(avrege)
+                else:
+                    avregeLoss += abs(avrege)
+            if avregeLoss != 0:
+                RS = avregeGain/avregeLoss
+                RSI = 100 - (100/(1+(RS)))
             else:
-                avregeLoss += abs(avrege)
-        if avregeLoss != 0:
-            RS = avregeGain/avregeLoss
-            RSI = 100 - (100/(1+(RS)))
-        else:
-            RSI = 100
-        self.recommendationLogic(RSI, closingPrice, date)
+                RSI = 100
+            recomendation = self.recommendationLogic(RSI, closingPrice, date)
+            # db_interface.set_recommendation(recommendation)
+            time.sleep(10)
+            i += 1
 
     def unpackData(self, data):
         date = data[0][0][0]
@@ -343,11 +351,11 @@ class RSI(Algorithm):
         return dataList, closePrice, date
 
     def recommendationLogic(self, RSI, stock_price, date):
-        if RSI < self.settings["buySignal"]:
+        if RSI < self.settings["result"]["buySignal"]:
             rec = Recommendation("Buy", stock_price, date, self.settings)
             return rec.get_recomendation_info()
 
-        elif RSI > self.settings["sellSignal"]:
+        elif RSI > self.settings["result"]["sellSignal"]:
             rec = Recommendation("Sell", stock_price, date, self.settings)
             return rec.get_recomendation_info()
 
@@ -358,7 +366,6 @@ class FibonacciRetracement(Algorithm):
 
 
 class Recommendation:
-    # prints recomendations
     def __init__(self, recAction, stock_price, stock_date, settings):
         self.recAction = recAction
         self.stock_price = stock_price
@@ -486,12 +493,10 @@ if __name__ == "__main__":
 
     DB = DatabaseInterface("Hej")
     test3 = RecommendationInterface(DB)
-    # a = test3.run_algorithm("RSI", {"result": {
-    #                         "nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 70}})
-    # print(a)
-    # b = test3.run_algorithm("MACD", {"result": {
-    #     "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
-    # print(b)
+    a = test3.run_algorithm("RSI", {"result": {
+                            "nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 40}})
+    b = test3.run_algorithm("MACD", {"result": {
+        "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
     # c = test3.run_algorithm("MACD", {"result": {
     #     "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
     # print(c)
