@@ -1,14 +1,20 @@
-from flask import Flask, redirect, url_for, render_template, request
+from flask import Flask, redirect, url_for, render_template, request, jsonify
 from flask.helpers import flash
 import main
 import mysql.connector
 import importlib
 import datetime
 import re
+#import pandas as pd
+#import matplotlib.pyplot as plt
+#from matplotlib.animation import FuncAnimation
+import random
+
+
 
 app = Flask(__name__)
 app.secret_key = "sotck45&%204()ON)????=)(/&&"
-
+#plt.style.use('fivethirtyeight')
 
 @app.route("/")
 def home():
@@ -57,11 +63,13 @@ def Algo3():
 @app.route("/Recommendations/")
 def recommendation():
     """Take in stock info from the datebase and render it on the website"""
-    
-    ticket = request.args.get("stockID")
-    interval2 = request.args.get("interval")
 
     
+    ticket = request.args.get("stockID") 
+    interval2 = request.args.get("interval")
+    if interval2 not in locals(): #Om man inte har valt ett intervall och tid kommer det då bli
+        ticket = 'AAPL'
+        interval2 = '15min'
 
     if ticket and interval2:
         recommendationFromMain = dbInterface.get_recommendations(ticket, interval2)
@@ -76,12 +84,49 @@ def recommendation():
             dictOfWords['oDate'] = date #Lägger till datumet sist i dictionary
             dictOfWords['oTime'] = time
             listDictonary.append(dictOfWords) #Lägger till dictionay i en list
-            
         print(listDictonary)
+        
+        yValue = []
+        xValue = []
+        """
+        for random_number in random.sample(range(1, 30), 20): 
+            yValue.append(random_number)
+            #print(yValue)
+        print(yValue)
 
-        return render_template('recommendation.html', listDictonary=listDictonary) #Skickat in listan listDictonary i html
+        for random_number in random.sample(range(1, 30), 20): 
+            xValue.append(random_number)
+            #print(xValue)
+        print(xValue)"""
+        
+        
+        for i in listDictonary:
+            if i['ReAction'] == 'Buy' or i['ReAction'] =='Sell':
+                xValue.append(i['Price'])
+                yValue.append(i['oTime'])
+        print (yValue)
+
+        return render_template('recommendation.html', listDictonary=listDictonary, xValue=xValue, yValue= yValue) #Skickat in listan listDictonary i html
     else:
         return render_template('recommendation.html')
+"""
+def graph(listDictonary):
+    print("hhhhhhhheeeeeeejjjjjj")
+    xValues = []
+    yValues = []
+    xValues.append([d['oTime'] for d in listDictonary])
+    yValues.append([d['Price'] for d in listDictonary])
+    print(xValues)
+    plt.cla()
+    plt.plot(xValues[0], yValues[0], label='pris')
+
+def updateGraph():
+    ani = FuncAnimation(plt.gcf(), graph, interval = 1000)    
+    plt.tight_layout()
+    plt.show() """
+
+
+
 
 @app.route("/Profile/", methods=['POST', 'GET'])
 def profile(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
@@ -115,6 +160,7 @@ def profile(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska f
 if __name__ == "__main__":
     manager,dbInterface = main.setUp()
     app.run(debug=True)
+
 
 
 

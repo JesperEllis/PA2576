@@ -60,9 +60,9 @@ class DatabaseInterface:
     def get_recommendations(self, stockId, interval):
         #print(self.connector.data_handler('getRecommendation', [stockId, interval]))
         #print(self.connector.data_handler('getRecommendation', ["AAPL", "1min"]))
-        #recommendation= [('Bullich', 122.0561, datetime.datetime(2021, 3, 18, 12, 45), 'AAPL', '15min'), ('Bearich', 120.2099, datetime.datetime(2021, 3, 19, 11, 15), 'TSLA', '20min'), ('kallek', 120.2099, datetime.datetime(2021, 3, 19, 11, 20), 'AMZN', '15min'), ('Buy', 1.0561, datetime.datetime(2021, 3, 18, 11, 43), 'AAPL', '15min'), ('Sell', 122.0561, datetime.datetime(2021, 5, 17, 12, 45), 'AAPL', '1min')]  
-        return self.connector.data_handler('getRecommendation', [stockId, interval])
-        #return recommendation
+        recommendation= [('Berich', 122.0561, datetime.datetime(2021, 3, 18, 12, 45), 'AAPL', '15min'), ('Sell', 120.2099, datetime.datetime(2021, 3, 19, 13, 00), 'TSLA', '20min'), ('Berish', 120.2099, datetime.datetime(2021, 3, 19, 13, 15), 'AMZN', '15min'), ('Buy', 124.0561, datetime.datetime(2021, 3, 18, 13, 30), 'AAPL', '15min'), ('Sell', 122.0561, datetime.datetime(2021, 5, 17, 14, 00), 'AAPL', '1min')]  
+        #return self.connector.data_handler('getRecommendation', [stockId, interval])
+        return recommendation
         
     def set_recommendation(self, recommendation):
         print(recommendation)
