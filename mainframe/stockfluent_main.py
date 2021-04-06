@@ -111,31 +111,21 @@ def recommendation():
         return render_template('recommendation.html', listDictonary=listDictonary, xValue=xValue, yValue= yValue) #Skickat in listan listDictonary i html
     else:
         return render_template('recommendation.html')
-"""
-def graph(listDictonary):
-    print("hhhhhhhheeeeeeejjjjjj")
-    xValues = []
-    yValues = []
-    xValues.append([d['oTime'] for d in listDictonary])
-    yValues.append([d['Price'] for d in listDictonary])
-    print(xValues)
-    plt.cla()
-    plt.plot(xValues[0], yValues[0], label='pris')
-
-def updateGraph():
-    ani = FuncAnimation(plt.gcf(), graph, interval = 1000)    
-    plt.tight_layout()
-    plt.show() """
-
-
-
 
 @app.route("/login", methods=['POST', 'GET'])
-def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
-    #dbInterface.create_user()
+def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+
+        """
+        myconn = mysql.connector.connect(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas") #Ansluter till databasen
+        cur = myconn.cursor() # det är en cursor, pekare av något slag
+        sql = "insert into user (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
+        val = (email, password) #Det som hamnar i %s och %s
+        cur.execute(sql, val) #Execute, slår ihop SQL och val och får en komplett query
+        myconn.commit() # lägger in det i databasen
+        myconn.close() #stänger databasen """
 
         if email in user_emails.keys():
             user = user_emails[email]
