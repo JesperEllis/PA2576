@@ -10,6 +10,7 @@ import mysql.connector as mysql
 from mysql.connector import MySQLConnection
 import datetime
 from threading import Thread, Event
+import json
 
 
 class SystemManager:
@@ -71,9 +72,9 @@ class DatabaseInterface:
         print("Set_recommendation")
         "get connection, then call apropiate procedure"
 
-    def set_algorithm(self, settings, stockID):
+    def set_algorithm(self, settings):
         ''' Returns a list with the algoID on the first position and a bool telling if the algorithm already existed or not'''
-        algoID = self.connector.data_handler('setAlgorithm'[settings, stockID])
+        algoID = self.connector.data_handler('setAlgorithm',[settings])
         return algoID
 
     def check_mail_existence(self, email):
@@ -167,24 +168,26 @@ class RecommendationInterface:
     def get_algo_settings(self, algo_type):
         return self.my_algo_collection[algo_type]
 
-    def _create_algo(self, algoID, algo_type, settings):
-        if algo_type == "MACD":
+    def _create_algo(self, algoID, settings):
+        if settings["result"]["algo_type"] == "MACD":
             new_algo = MACD(settings, self.db_interface, algoID)
             self.avalible_algo.append(new_algo)
             return new_algo
 
-        elif algo_type == "RSI":
+        elif settings["result"]["algo_type"] == "RSI":
             new_algo = RSI(settings, self.db_interface, algoID)
             self.avalible_algo.append(new_algo)
             return new_algo
 
-    def run_algorithm(self, algo_type, settings):
-        a = self.db_interface.set_algoritm(algo_type, settings)
+    def run_algorithm(self, settings):
+        b= json.dumps(settings)
+        a = self.db_interface.set_algorithm(b)
         # a en lista med algoid och True False [algoID,Bool]
-        if not a[1]:
-            algo = self._create_algo(a[0], algo_type, settings)
+        print(a)
+        if not a[1][0]:
+            algo = self._create_algo(a[0][0], settings)
             algo.start()
-        return a[0]
+        return a[0][0]
 
     def kill(self, algoID):
         for algo in self.avalible_algo:
@@ -380,19 +383,19 @@ class StockdataInterface:
         self.my_api_connector = api_connector
         # self.dataFormater = DataFormater()
 
-    def get_macd_intraday(self, algo_type, settings):
-        """Tillfällig metod för att lösa mvp, gör två anrop till api och ersätter där med while loopen i RecommendationInteface"""
-        result = settings["result"]
+    # def get_macd_intraday(self, algo_type, settings):
+    #     """Tillfällig metod för att lösa mvp, gör två anrop till api och ersätter där med while loopen i RecommendationInteface"""
+    #     result = settings["result"]
 
-        MACD_stockinfo = self.my_api_connector.get_macd(
-            result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
-        stock_info = self.my_api_connector.get_intraday(
-            result["stock"], result["interval"])
-        # kallar på data formateraren och sparar resultat
-        formatted_data = self.dataFormater.format_data(
-            MACD_stockinfo, stock_info, settings["result"]["interval"])
-        formatted_data.append(settings)
-        return formatted_data
+    #     MACD_stockinfo = self.my_api_connector.get_macd(
+    #         result["stock"], result["interval"], result["fastperiod"], result["slowperiod"], result["signalperiod"])
+    #     stock_info = self.my_api_connector.get_intraday(
+    #         result["stock"], result["interval"])
+    #     # kallar på data formateraren och sparar resultat
+    #     formatted_data = self.dataFormater.format_data(
+    #         MACD_stockinfo, stock_info, settings["result"]["interval"])
+    #     formatted_data.append(settings)
+    #     return formatted_data
 
     def macd(self, stock, time_interval):
         return self.my_api_connector.get_macd(stock, time_interval)
@@ -401,7 +404,7 @@ class StockdataInterface:
         return self.my_api_connector.get_days(stock)
 
     def get_intraday(self, stock):
-        self.db_interface.set_stockdata( self.my_api_connector.get_intraday(stock))
+        self.db_interface.set_stockdata(self.my_api_connector.get_intraday(stock))
 
 
 class ApiConnector:
@@ -483,11 +486,15 @@ if __name__ == "__main__":
     # test2 = StockdataInterface("databaseInterface", ApiConnector(api_key))
     # test3 = RecommendationInterface("databaseInterface", test2)
 
-    DB = DatabaseInterface("Hej")
+    api_key = "PFHGI45JG5C2X5DQ"
+    test = ApiConnector(api_key)
+    DB = DatabaseInterface(DatabaseConnector("usr", "psw"))
+    SDI = StockdataInterface(DB, ApiConnector(api_key))
+    # SDI.get_intraday("AAPL")
     test3 = RecommendationInterface(DB)
-    a = test3.run_algorithm("RSI", {"result": {
-                            "nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 40}})
-    b = test3.run_algorithm("MACD", {"result": {
+    a = test3.run_algorithm({"result": {"algo_type":"RSI",
+                            "stock": "AAPL","nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 40}})
+    b = test3.run_algorithm({"result": {"algo_type":"MACD",
         "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2, "signalperiod": 3}})
     # c = test3.run_algorithm("MACD", {"result": {
     #     "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
@@ -500,19 +507,17 @@ if __name__ == "__main__":
     #     {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
 # {"MACD", {"result": {
 #         "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}: MACD()}
-    api_key = "PFHGI45JG5C2X5DQ"
-    test = ApiConnector(api_key)
-    databaseInterface = DatabaseInterface(DatabaseConnector("usr", "psw"))
+    
     # test with Apple stock and 5min interval
     # print(test.get_macd("AAPL", "5min"))
-    test2 = StockdataInterface(databaseInterface, ApiConnector(api_key))
+    # test2 = StockdataInterface(databaseInterface, ApiConnector(api_key))
     # test3= RecommendationInterface("databaseInterface", test2)
     # test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
                             # "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
-    dbConnector = DatabaseConnector("usr", "psw")
-    dbInterface = DatabaseInterface(dbConnector)
-    test2.get_intraday('AAPL')
-    print(databaseInterface.get_stockdata('AAPL', 3, '0:10'))
+    # dbConnector = DatabaseConnector("usr", "psw")
+    # dbInterface = DatabaseInterface(dbConnector)
+    # test2.get_intraday('AAPL')
+    # print(databaseInterface.get_stockdata('AAPL', 3, '0:10'))
     
 
 
