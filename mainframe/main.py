@@ -39,7 +39,7 @@ class DatabaseInterface:
 
     def check_login(self, username, password):
         "get connection, then call apropiate procedure"
-        pass
+        return self.connector.data_handler("logIn", [username, password])
 
     def get_user_settings(self, username):
         "get connection, then call apropiate procedure"
@@ -65,7 +65,7 @@ class DatabaseInterface:
         return self.connector.data_handler('getRecommendation', [stockId, interval])
         #return recommendation
         
-    def set_recommendation(self, recommendation):
+    def set_recommendadtion(self, recommendation):
         print(recommendation)
         self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
                                                              recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
