@@ -21,7 +21,7 @@ def Algorithm():
     return render_template("algorithm.html")
 
 
-@app.route("/Algorithm/MACD", methods=["POST", "GET"])
+@app.route("/MACD", methods=["POST", "GET"])
 def MACD():
     stockName = request.args.get("stockID")
     interval = request.args.get("interval")

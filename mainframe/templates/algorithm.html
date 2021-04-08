@@ -59,36 +59,22 @@
 
         <div class="container-fluid text-center">
             <br>
-            <!-- <div class="row slideanim slide">
-                <div class="col-sm-4 border rounded">
-                  <h4>MACD</h4>
-                  <p>Something about MACD</p>
-                  <a href="{{ url_for('MACD') }}"><button type="button" class="btn btn-primary">Choose</button></a>
-                </div>
-                <div class="col-sm-4 border rounded">
-                  <h4>RSI</h4>
-                  <p>Something about RSI</p>
-                  <a href="{{ url_for('RSI') }}"><button type="button" class="btn btn-primary">Choose</button></a>
-                </div>
-                <div class="col-sm-4 border rounded">
-                  <h4>Algo 3</h4>
-                  <p>Something about alog 3</p>
-                  <a href=""><button type="button" class="btn btn-primary">Choose</button></a>
-                </div>
-            </div> -->
+
             <div class="row">
               <div class="col-sm-4">
                 <div class="card">
                   <h5 class="card-header">Relative Strength Index</h5>
                   <img class="card-img-top" src="{{ url_for('static', filename='images/rsi.jpg') }}" alt="Card image cap">
                   <div class="card-body">
-                    <h5 class="card-title">RSI</h5>
+                  <button type="button" class="btn btn-link card-title" data-toggle="modal" data-target="#rsiModal">
+                    <h5>RSI</h5>
+                  </button>
                     <p class="card-text">The RSI indicator is a tool that's used to highlight how well or poorly a stock has developed compared to its own historical development.</p>
                     <a href="{{ url_for('RSI') }}" class="btn btn-primary">Customize</a>
                   </div>
                   <ul class="list-group list-group-flush">
                     <li class="list-group-item" style="color: rgb(100, 145, 50);">
-                      <p>Strong indicator on non-volatile and safe stocks.</p>
+                      <p>Strong indicator on non-volatile and stable stocks.</p>
                     </li>
                     <li class="list-group-item" style="color: rgb(214, 28, 28)">
                       <p>Might give false indications on a very trending stock.</p>
@@ -101,16 +87,21 @@
                   <h5 class="card-header">Moving average convergence/divergence</h5>
                   <img class="card-img-top" src="{{ url_for('static', filename='images/macd.png') }}" alt="Card image cap">
                   <div class="card-body">
-                    <h5 class="card-title">MACD</h5>
+                    <button type="button" class="btn btn-link card-title" data-toggle="modal" data-target="#macdModal">
+                      <h5>MACD</h5>
+                    </button>
                     <p class="card-text">The MACD technical indicator is used to discover changes in the momentum of the stock to find oppurtune moments to buy or sell.</p>
-                    <a href="#" class="btn btn-primary">Customize</a>
+                    <a href="{{ url_for('MACD') }}" class="btn btn-primary">Customize</a>
                   </div>
                   <ul class="list-group list-group-flush">
                     <li class="list-group-item" style="color: rgb(100, 145, 50);">
-                      <p>Strong indicator on non-volatile and safe stocks.</p>
+                      <p>One of the most popular indicators, strong and reliable.</p>
                     </li>
                     <li class="list-group-item" style="color: rgb(214, 28, 28)">
-                      <p>Might give false indications on a very trending stock.</p>
+                      <p>Struggles with reliability in so called <a href="#" data-toggle="popover" data-trigger="focus"
+                        title="Sideways market" 
+                        data-content="A market were prices fluctuate within a tight range forming no noticeable trend. ">
+                        sideways markets.</a></p>
                     </li>
                   </ul>
                 </div>
@@ -120,7 +111,9 @@
                   <h5 class="card-header">Johnny's pickup algorithm</h5>
                   <img class="card-img-top" src="{{ url_for('static', filename='images/johnny.png') }}" alt="Card image cap">
                   <div class="card-body">
-                    <h5 class="card-title">JPA</h5>
+                    <button type="button" class="btn btn-link card-title" data-toggle="modal" data-target="#jpaModal">
+                      <h5>JPA</h5>
+                    </button>
                     <p class="card-text">How to impress a partner 101, your guide to beat loneliness with a 100% sucess guarantee!</p>
                     <a href="#" class="btn btn-primary">Let's go!</a>
                   </div>
@@ -135,6 +128,107 @@
                 </div>
               </div>
             </div>
+
+            <!--RSI Modal-->
+            <div class="modal fade" id="rsiModal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                
+                  <!-- Modal Header -->
+                  <div class="modal-header">
+                    <h4 class="modal-title">What is RSI?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  
+                  <!-- Modal body -->
+                  <div class="modal-body">
+                    <p>An <a href="https://www.investopedia.com/terms/e/ema.asp">Exponential Moving Average</a>, often referred to as EMA, is a type of Moving Average.</p>
+                    <p>A <a href="https://www.investopedia.com/terms/m/movingaverage.asp">Moving Average</a> is in turn a calculation used to analyze data points by creating 
+                      a series of averages of different subsets of the full data set.
+                    </p>
+                    <p>An EMA is different from a normal Moving Average due to it putting more weight
+                       and significance on recent prices than older prices.
+                    </p>
+                  </div>
+                  
+                  <!-- Modal footer -->
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+
+            <!--MACD Modal-->
+            <div class="modal fade" id="macdModal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                
+                  <!-- Modal Header -->
+                  <div class="modal-header">
+                    <h4>What is MACD?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  
+                  <!-- Modal body -->
+                  <div class="modal-body">
+                    <p>An <a href="https://www.investopedia.com/terms/e/ema.asp">Exponential Moving Average</a>, often referred to as EMA, is a type of Moving Average.</p>
+                    <p>A <a href="https://www.investopedia.com/terms/m/movingaverage.asp">Moving Average</a> is in turn a calculation used to analyze data points by creating 
+                      a series of averages of different subsets of the full data set.
+                    </p>
+                    <p>An EMA is different from a normal Moving Average due to it putting more weight
+                       and significance on recent prices than older prices.
+                    </p>
+                  </div>
+                  
+                  <!-- Modal footer -->
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+
+            <!--JPA Modal (Example)-->
+            <div class="modal fade" id="jpaModal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                
+                  <!-- Modal Header -->
+                  <div class="modal-header">
+                    <h4 class="modal-title">What is JPA?</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+                  
+                  <!-- Modal body -->
+                  <div class="modal-body">
+                    <p>An <a href="https://www.investopedia.com/terms/e/ema.asp">Exponential Moving Average</a>, often referred to as EMA, is a type of Moving Average.</p>
+                    <p>A <a href="https://www.investopedia.com/terms/m/movingaverage.asp">Moving Average</a> is in turn a calculation used to analyze data points by creating 
+                      a series of averages of different subsets of the full data set.
+                    </p>
+                    <p>An EMA is different from a normal Moving Average due to it putting more weight
+                       and significance on recent prices than older prices.
+                    </p>
+                  </div>
+                  
+                  <!-- Modal footer -->
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+
         </div>
+        <script>
+          $(document).ready(function(){
+            $('[data-toggle="popover"]').popover(
+              {trigger: "hover"}
+            );   
+          });
+          </script>
     </body>
 </html>
