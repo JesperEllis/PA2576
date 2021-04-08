@@ -7,7 +7,7 @@ import time
 import pytz
 from os import path
 import mysql.connector as mysql
-from sshtunnel import SSHTunnelForwarder
+from mysql.connector import MySQLConnection
 import datetime
 from threading import Thread, Event
 
@@ -39,7 +39,7 @@ class DatabaseInterface:
 
     def check_login(self, username, password):
         "get connection, then call apropiate procedure"
-        pass
+        return self.connector.data_handler("logIn", [username, password])
 
     def get_user_settings(self, username):
         "get connection, then call apropiate procedure"
@@ -49,13 +49,14 @@ class DatabaseInterface:
         "get connection, then call apropiate procedure"
         pass
 
-    def get_stockdata(self, stock_name):
-        return [[(datetime.datetime(2021, 3, 20, 12, 45), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 43), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 41), 121.27)], [(datetime.datetime(2021, 3,
-                                                                                                                                                                                                20, 12, 39), 122.49)], [(datetime.datetime(2021, 3, 20, 12, 43), 122.48)], [(datetime.datetime(2021, 3, 20, 12, 41), 121.27)], [(datetime.datetime(2021, 3, 20, 12, 39), 122.49)]]
-
-    def set_stockdata(self, stock_name, stock_info):
+    def get_stockdata(self, stock_ID, nbr_of_data_points, interval):
         "get connection, then call apropiate procedure"
-        pass
+        return self.connector.data_handler("getStockData",[stock_ID,nbr_of_data_points,interval])
+
+    def set_stockdata(self, stock_list):
+        "get connection, then call apropiate procedure"
+        for items in stock_list[0].keys():
+            self.connector.data_handler("insertStockData",[stock_list[1]['2. Symbol'],items,stock_list[0][items]["4. close"]])
 
     def get_recommendations(self, stockId, interval):
         # print(self.connector.data_handler('getRecommendation', [stockId, interval]))
@@ -70,8 +71,10 @@ class DatabaseInterface:
         print("Set_recommendation")
         "get connection, then call apropiate procedure"
 
-    def set_algoritm(self, algo_type, settings):
-        return ["RSI", False]
+    def set_algorithm(self, settings, stockID):
+        ''' Returns a list with the algoID on the first position and a bool telling if the algorithm already existed or not'''
+        algoID = self.connector.data_handler('setAlgorithm'[settings, stockID])
+        return algoID
 
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
@@ -89,41 +92,23 @@ class DatabaseInterface:
 
 class DatabaseConnector:
     def __init__(self, username, password):
-        self.SSH_USER = 'jeeu18'  # ACRONYM
-        self.SSH_PASS = 'ForTheDatabase123'  # CANVAS_PASS
-
-        self.MYSQL_USER = self.SSH_USER  # ACRONYM
-        self.MYSQL_PASS = 'CZEf69snXtUA'  # MYSQL_PASS
-        self.MYSQL_DATABASE = self.SSH_USER  # ACRONYM
+        self.connection = None
 
     def data_handler(self, func, arg=None):
+        if not self.connection:
+            self.connection = MySQLConnection(host='localhost',database ='StockFluent', user = 'root')
+        cnx = self.connection.cursor(dictionary=True)
+        if arg == None:
+            cnx.callproc(func)
 
-        print(self.SSH_USER)
-        filtered_prod = 0
-        with SSHTunnelForwarder(
-                ('ssh.student.bth.se', 22),
-                ssh_username=self.SSH_USER,
-                ssh_password=self.SSH_PASS,
-                remote_bind_address=('blu-ray.student.bth.se', 3306)
-        ) as tunnel:
-            print("Hej")
-            connection = mysql.connect(host='127.0.0.1', user=self.MYSQL_USER,
-                                       passwd=self.MYSQL_PASS,
-                                       db=self.MYSQL_DATABASE, port=tunnel.local_bind_port)
-            print("Sent_function")
-            cnx = connection.cursor(dictionary=True)
-            if arg == None:
-                cnx.callproc(func)
-
-            else:
-                cnx.callproc(func, arg)
-
-            for row in cnx.stored_results():
-                filtered_prod = row.fetchall()
-            connection.commit()
-            connection.close()
-
-            return filtered_prod
+        else:
+            cnx.callproc(func, arg)
+        result = []
+        for items in cnx.stored_results():
+            result.append(items.fetchall())
+        self.connection.commit()
+        # self.connection.close()
+        return result
 
 # Profile component
 
@@ -415,8 +400,8 @@ class StockdataInterface:
     def days(self, stock):
         return self.my_api_connector.get_days(stock)
 
-    def get_intraday(self, stock, time_interval):
-        return self.my_api_connector.get_intraday(stock, time_interval)
+    def get_intraday(self, stock):
+        self.db_interface.set_stockdata( self.my_api_connector.get_intraday(stock))
 
 
 class ApiConnector:
@@ -439,9 +424,9 @@ class ApiConnector:
         """Returns timeseries with close-value each day (20 years back)"""
         return self.time_app.get_daily(stock)
 
-    def get_intraday(self, stock, time_interval):
+    def get_intraday(self, stock):
         """"interval: '1min', '5min', '15min', '30min', '60min'"""
-        return self.time_app.get_intraday(stock, time_interval, outputsize="full")
+        return self.time_app.get_intraday(stock, '1min', outputsize="full")
 
 
 # class DataFormater:
@@ -515,3 +500,19 @@ if __name__ == "__main__":
     #     {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
 # {"MACD", {"result": {
 #         "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}: MACD()}
+    api_key = "PFHGI45JG5C2X5DQ"
+    test = ApiConnector(api_key)
+    databaseInterface = DatabaseInterface(DatabaseConnector("usr", "psw"))
+    # test with Apple stock and 5min interval
+    # print(test.get_macd("AAPL", "5min"))
+    test2 = StockdataInterface(databaseInterface, ApiConnector(api_key))
+    # test3= RecommendationInterface("databaseInterface", test2)
+    # test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
+                            # "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
+    dbConnector = DatabaseConnector("usr", "psw")
+    dbInterface = DatabaseInterface(dbConnector)
+    test2.get_intraday('AAPL')
+    print(databaseInterface.get_stockdata('AAPL', 3, '0:10'))
+    
+
+

@@ -6,6 +6,7 @@ import mysql.connector
 import importlib
 import datetime
 import re
+from mailsender import MailSender
 
 app = Flask(__name__)
 app.secret_key = "sotck45&%204()ON)????=)(/&&"
@@ -88,15 +89,15 @@ def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fix
         email = request.form['email']
         password = request.form['password']
 
-        if email in user_emails.keys():
-            user = user_emails[email]
-            if password == user.get_password():
-                user.set_authentication(True)
-                login_user(user)
+        db_result = dbInterface.check_login(email, password)
+        if db_result[0]:
+            user = User(email, id=db_result[1])
+            user.set_authentication(True)
+            login_user(user)
 
-                next = request.args.get("next")
+            next = request.args.get("next")
 
-                return redirect(url_for("Profile"))
+            return redirect(url_for("Profile"))
 
         return render_template("login.html", incorrect = True)
 
@@ -110,11 +111,11 @@ def signup():
         email = request.form['email']
         password = request.form['password']
 
-        if email in user_emails.keys():
+        if dbInterface.check_mail_existence(email):
             return render_template("signup.html", exists = True)
         
-        #Här skall det vara en databas sparning istället
-        user_emails.update({email : User(email, password)})
+        #stores user in DB
+        dbInterface.create_user(email, password)
         return render_template("login.html")
         
     else:
@@ -123,7 +124,8 @@ def signup():
 @app.route("/logout")
 @login_required
 def logout():
-    logout_user()
+    logout_user(current_user)################################
+    users_lst.remove(current_user)#############################
     flash("You have been logged out!")
     return redirect(url_for("home"))
 
@@ -138,21 +140,14 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 class User:
-    user_id = 0
-    def __init__(self, email, password):
+    def __init__(self, email, id):
         self._email = email
-        self._password = password
         self.authenticated = False
-        self.id = User.user_id
-        User.add_user_id()
+        self.id = id        
         self.active = False
         self.anonymous = False
         #Tillfällig lösning
         users_lst.append(self)
-    
-    @classmethod
-    def add_user_id(cls):
-        cls.user_id += 1
     
     def set_authentication(self, auth_bool):
         self.authenticated = auth_bool
@@ -170,21 +165,15 @@ class User:
         """Return a unicode object that repsresents the users id"""
         return self.id
 
-    def get_password(self):
-        return self._password
-
 #Tillfällig lösning ska egentligen sparas i DATABAS
 users_lst = []
 user_emails = {"test@bth.se": User("test@bth.se", "pass")}
 
 @login_manager.user_loader
 def load_user(user_id):
-    i = 0
-    while i-1 < len(users_lst):
+    for i in range(0, len(users_lst, -1)):
         if user_id == users_lst[i].get_id():
             return users_lst[i]
-        else:
-            i+=1
     return None
 
 
