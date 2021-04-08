@@ -6,6 +6,7 @@ import mysql.connector
 import importlib
 import datetime
 import re
+from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 app.secret_key = "sotck45&%204()ON)????=)(/&&"
@@ -77,11 +78,27 @@ def recommendation():
         return render_template('recommendation.html')
 
 @app.route("/login", methods=['POST', 'GET'])
-def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
-    #dbInterface.create_user()
+def login(): 
+    key = Fernet.generate_key()
+    crypter = Fernet(key)
+
     if request.method == 'POST':
         email = request.form['email']
-        password = request.form['password']
+        password = str(request.form['password'])
+        passwordCrypt = crypter.encrypt(bytes(password, encoding='utf8')) #Krypterat lösenord
+
+        myconn = mysql.connector.connect(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas") #Ansluter till databasen
+        cur = myconn.cursor() # det är en cursor, pekare av något slag
+        sql = "insert into user (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
+        val = (email, passwordCrypt) #Det som hamnar i %s och %s
+        cur.execute(sql, val) #Execute, slår ihop SQL och val och får en komplett query
+        myconn.commit() # lägger in det i databasen
+        myconn.close() #stänger databasen
+
+        deCryptPassword = crypter.decrypt(passwordCrypt) #Omvandlar krypteringen till det riktiga lösenordet
+        print(deCryptPassword)
+
+
 
         if email in user_emails.keys():
             user = user_emails[email]
@@ -96,6 +113,7 @@ def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fix
         return render_template("login.html", incorrect = True)
 
     else: 
+        
         return render_template("login.html")
 
 @app.route("/signup", methods=['POST', 'GET'])
@@ -174,13 +192,15 @@ user_emails = {"test@bth.se": User("test@bth.se", "pass")}
 
 @login_manager.user_loader
 def load_user(user_id):
+    return
+    """
     i = 0
     while i-1 < len(users_lst):
         if user_id == users_lst[i].get_id():
             return users_lst[i]
         else:
             i+=1
-    return None
+    return None"""
 
 if __name__ == "__main__":
     manager,dbInterface = main.setUp()
