@@ -10,6 +10,7 @@ import mysql.connector as mysql
 from mysql.connector import MySQLConnection
 import datetime
 from threading import Thread, Event
+import threading
 import json
 
 
@@ -66,9 +67,8 @@ class DatabaseInterface:
         return self.connector.data_handler('getRecommendation', [stockId, interval])
         # return recommendation
 
-    def set_recommendation(self, recommendation):
-        self.connector.data_handler('insertRecommendation', [recommendation["recAction"], recommendation["price"], recommendation["date"],
-                                                             recommendation["settings"]["result"]["stock"], recommendation["settings"]["result"]["interval"]])
+    def set_recommendation(self, algoID, recommendation):
+        self.connector.data_handler('insertRecommendation', [algoID, recommendation["date"], recommendation["recAction"], recommendation["price"]])
         print("Set_recommendation")
         "get connection, then call apropiate procedure"
 
@@ -94,8 +94,10 @@ class DatabaseInterface:
 class DatabaseConnector:
     def __init__(self, username, password):
         self.connection = None
+        self.lock = threading.Lock()
 
     def data_handler(self, func, arg=None):
+        self.lock.acquire()
         if not self.connection:
             self.connection = MySQLConnection(host='localhost',database ='StockFluent', user = 'root')
         cnx = self.connection.cursor(dictionary=True)
@@ -106,9 +108,10 @@ class DatabaseConnector:
             cnx.callproc(func, arg)
         result = []
         for items in cnx.stored_results():
-            result.append(items.fetchall())
+            result.append(items.fetchall()[0])
         self.connection.commit()
         # self.connection.close()
+        self.lock.release()
         return result
 
 # Profile component
@@ -183,10 +186,9 @@ class RecommendationInterface:
         b= json.dumps(settings)
         a = self.db_interface.set_algorithm(b)
         # a en lista med algoid och True False [algoID,Bool]
-        print(a)
-        if not a[1][0]:
-            algo = self._create_algo(a[0][0], settings)
-            algo.start()
+        # if not a[1][0]:
+        algo = self._create_algo(a[0][0], settings)
+        algo.start()
         return a[0][0]
 
     def kill(self, algoID):
@@ -228,11 +230,13 @@ class MACD(Algorithm):
         super().__init__(settings, DB, algoID)
         # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
 
+        # "MACD", {"result": {"stock": stockName, "interval": interval,
+        #                                     "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}
     def run(self):
         i = 0
-        while self.alive == True and i < 2:
-            result = self.db_interface.get_stockdata(self.settings)
-            resultErlier = self.db_interface.get_stockdata(self.settings)[1:]
+        while self.alive == True and i < 1:
+            result = self.db_interface.get_stockdata(self.settings["result"]["stock"],self.settings["result"]["slowperiod"]+1,self.settings["result"]["interval"] )
+            resultErlier = result[1:]
             date, closePrice, fastEMAList, slowEMAList, signalLine = self.unpackData(
                 result)
             dateErlier, closePriceErlier, fastEMAListErlier, slowEMAListErlier, signalLineErlier = self.unpackData(
@@ -243,7 +247,7 @@ class MACD(Algorithm):
                 closePriceErlier, fastEMAListErlier, slowEMAListErlier, signalLineErlier)
             recommendation = self.recommendationLogic(
                 MACD_Hist, MACD_HistErlier, closePrice, date)
-            # db_interface.set_recommendation(recommendation)
+            self.db_interface.set_recommendation(self.algoID,recommendation)
             time.sleep(10)
             i += 1
 
@@ -251,18 +255,18 @@ class MACD(Algorithm):
         fastEMAList = []
         slowEMAList = []
         signalLine = []
-        date = data[0][0][0]
+        date = data[0][0]
         date = date.strftime('%Y-%m-%d %H:%M')
-        closePrice = data[0][0][1]
+        closePrice = data[0][1]
         fastdata = data[:self.settings["result"]["fastperiod"]]
         slowdata = data[:self.settings["result"]["slowperiod"]]
         signalLinedata = data[:self.settings["result"]["signalperiod"]]
         for value in fastdata:
-            fastEMAList.append(value[0][1])
+            fastEMAList.append(value[1])
         for value in slowdata:
-            slowEMAList.append(value[0][1])
+            slowEMAList.append(value[1])
         for value in signalLinedata:
-            signalLine.append(value[0][1])
+            signalLine.append(value[1])
         return date, closePrice, fastEMAList, slowEMAList, signalLine
 
     def create_Hist(self, closingPrice, fastEMAList, slowEMAList, signalLine):
@@ -310,9 +314,9 @@ class RSI(Algorithm):
 
     def run(self):
         i = 0
-        while self.alive == True and i < 2:
+        while self.alive == True and i < 1:
             # get nrPeriod st List med periodlength mellanrum
-            dataList = self.db_interface.get_stockdata(self.settings)
+            dataList = self.db_interface.get_stockdata(self.settings["result"]["stock"],self.settings["result"]["nrPeriod"]+1,self.settings["result"]["interval"])
             dataList, closingPrice, date = self.unpackData(dataList)
             avregeGain, avregeLoss = 0, 0
             for data in dataList:
@@ -326,20 +330,20 @@ class RSI(Algorithm):
                 RSI = 100 - (100/(1+(RS)))
             else:
                 RSI = 100
-            recomendation = self.recommendationLogic(RSI, closingPrice, date)
-            # db_interface.set_recommendation(recommendation)
+            recommendation = self.recommendationLogic(RSI, closingPrice, date)
+            self.db_interface.set_recommendation(self.algoID,recommendation)
             time.sleep(10)
             i += 1
 
     def unpackData(self, data):
-        date = data[0][0][0]
+        date = data[0][0]
         date = date.strftime('%Y-%m-%d %H:%M')
-        closePrice = data[0][0][1]
+        closePrice = data[0][1]
         dataList = []
         for priceIndex in range(len(data)-1):
             pricePair = []
-            priceF = data[priceIndex][0][1]
-            priceS = data[priceIndex+1][0][1]
+            priceF = data[priceIndex][1]
+            priceS = data[priceIndex+1][1]
             pricePair.append(priceF)
             pricePair.append(priceS)
             dataList.append(pricePair)
@@ -493,9 +497,9 @@ if __name__ == "__main__":
     # SDI.get_intraday("AAPL")
     test3 = RecommendationInterface(DB)
     a = test3.run_algorithm({"result": {"algo_type":"RSI",
-                            "stock": "AAPL","nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 40}})
+                            "stock": "AAPL","nrPeriod": 5, "interval": "0:01", "buySignal": 30, "sellSignal": 40}})
     b = test3.run_algorithm({"result": {"algo_type":"MACD",
-        "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2, "signalperiod": 3}})
+        "stock": "AAPL", "interval": "0:01", "fastperiod": 1, "slowperiod": 2, "signalperiod": 3}})
     # c = test3.run_algorithm("MACD", {"result": {
     #     "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
     # print(c)
