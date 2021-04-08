@@ -16,28 +16,40 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <nav class="navbar navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
-            <!-- Brand/logo -->
-            <a class="navbar-brand" href="#">
-              <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
-            </a>
-            
-            <!-- Links -->
+      <nav class="navbar sticky-top navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
+        <!-- Brand/logo -->
+        <a class="navbar-brand" href="#">
+          <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
             <ul class="navbar-nav">
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('home') }}">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('algorithm') }}">Algorithm</a>
-              </li>
-              <li class="nav-item active">
-                <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
-              </li>
-            </ul>
-          </nav>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('Algorithm') }}">Algorithms</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" href="{{ url_for('recommendation') }}">Recommendations</a>
+                </li>
+              </ul>
+              <ul class="navbar-nav ml-auto">
+                {% if current_user.is_authenticated %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('Profile') }}">Profile</a>
+                  </li>
+                {% else %}
+                  <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                  </li>
+                {% endif %}
+              </ul>
+        </div>     
+      </nav>
           <div>
             <h2 class="mt-5 mb-5 ml-3">Recommendations</h2>
             <form action="" method="GET">

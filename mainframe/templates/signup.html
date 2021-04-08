@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Stock Fluent</title>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+        <!-- Popper JS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
+    </head>
+    <body>
+      <nav class="navbar sticky-top navbar-expand-sm navbar-light" style="background-color: #e3f2fd;">
+        <!-- Brand/logo -->
+        <a class="navbar-brand" href="#">
+          <img src="{{ url_for('static', filename='images/stockfluent.png') }}" alt="logo" style="width:100px;">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('Algorithm') }}">Algorithms</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('recommendation') }}">Recommendations</a>
+                </li>
+              </ul>
+              <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                  <a class="nav-link active" href="{{ url_for('login') }}">Login</a>
+                </li>
+              </ul>
+        </div>     
+      </nav>
+        {% if exists %}
+              <div class="alert alert-danger" role="alert">
+              <strong>This email is already registered!</strong></div>
+        {% endif %}
+      <div id="loginForm">
+        <form class="LoginForm" action="" method="POST">
+            <div class="LoginDiv">
+              <h2 class="text-center">Sign up</h2>  
+              <div class="form-group">
+                  <input type="text" name="email" class="form-control" placeholder="Email" required="required">
+              </div>
+              <div class="form-group">
+                  <input type="password" name="password" class="form-control" id="password" placeholder="Password" required="required">
+              </div>
+              <div class="form-group">
+                <input type="password" name="cpassword" class="form-control" id="confirm_password" placeholder="Confirm Password" required="required">
+              </div>
+              <div class="form-group">
+                  <button type="submit" class="btn btn-primary btn-block">Register</button>
+              </div>
+              <div class="clearfix">
+                  <label class="float-left form-check-label">Already a member?</label>
+                  <a href="{{url_for('login')}}" class="float-right">Login here!</a>
+              </div> 
+            </div>      
+        </form>
+      </div>
+      <script>
+          var password = document.getElementById("password");
+          var cpassword = document.getElementById("confirm_password");
+
+          function validatePassword(){
+              if(password.value != cpassword.value) {
+                  cpassword.setCustomValidity("Passwords don't match!");
+              } else{
+                    confirm_password.setCustomValidity('');
+              }
+          }
+
+          password.onchange = validatePassword;
+          confirm_password.onkeyup = validatePassword;
+      </script>
+    </body>
+    </html>
+
+     
