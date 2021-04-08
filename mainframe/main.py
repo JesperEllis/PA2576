@@ -199,7 +199,6 @@ class RecommendationInterface:
         if not a[1]:
             algo = self._create_algo(a[0], algo_type, settings)
             algo.start()
-            # algo.run()
         return a[0]
 
     def kill(self, algoID):
