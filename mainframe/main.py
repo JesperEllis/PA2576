@@ -199,7 +199,7 @@ class RecommendationInterface:
         if not a[1]:
             algo = self._create_algo(a[0], algo_type, settings)
             algo.start()
-            algo.run()
+            # algo.run()
         return a[0]
 
     def kill(self, algoID):
@@ -246,13 +246,14 @@ class MACD(Algorithm):
         while self.alive == True and i < 2:
             result = self.db_interface.get_stockdata(self.settings)
             resultErlier = self.db_interface.get_stockdata(self.settings)[1:]
-            date, closePrice, fastEMAList, slowEMAList = self.unpackData(
+            date, closePrice, fastEMAList, slowEMAList, signalLine = self.unpackData(
                 result)
-            dateErlier, closePriceErlier, fastEMAListErlier, slowEMAListErlier = self.unpackData(
+            dateErlier, closePriceErlier, fastEMAListErlier, slowEMAListErlier, signalLineErlier = self.unpackData(
                 resultErlier)
-            MACD_Hist = self.create_Hist(closePrice, fastEMAList, slowEMAList)
+            MACD_Hist = self.create_Hist(
+                closePrice, fastEMAList, slowEMAList, signalLine)
             MACD_HistErlier = self.create_Hist(
-                closePriceErlier, fastEMAListErlier, slowEMAListErlier)
+                closePriceErlier, fastEMAListErlier, slowEMAListErlier, signalLineErlier)
             recommendation = self.recommendationLogic(
                 MACD_Hist, MACD_HistErlier, closePrice, date)
             # db_interface.set_recommendation(recommendation)
@@ -262,25 +263,32 @@ class MACD(Algorithm):
     def unpackData(self, data):
         fastEMAList = []
         slowEMAList = []
+        signalLine = []
         date = data[0][0][0]
         date = date.strftime('%Y-%m-%d %H:%M')
         closePrice = data[0][0][1]
         fastdata = data[:self.settings["result"]["fastperiod"]]
         slowdata = data[:self.settings["result"]["slowperiod"]]
+        signalLinedata = data[:self.settings["result"]["signalperiod"]]
         for value in fastdata:
             fastEMAList.append(value[0][1])
         for value in slowdata:
             slowEMAList.append(value[0][1])
-        return date, closePrice, fastEMAList, slowEMAList
+        for value in signalLinedata:
+            signalLine.append(value[0][1])
+        return date, closePrice, fastEMAList, slowEMAList, signalLine
 
-    def create_Hist(self, closingPrice, fastEMAList, slowEMAList):
+    def create_Hist(self, closingPrice, fastEMAList, slowEMAList, signalLine):
+        # signal line
         fastAvrege = sum(fastEMAList)/len(fastEMAList)
         slowAvrege = sum(slowEMAList)/len(slowEMAList)
+        signalAvrege = sum(signalLine)/len(signalLine)
         fastEMA = closingPrice * 2 / \
             len(fastEMAList)+fastAvrege*(1-(2/(len(fastEMAList)+1)))
         slowEMA = closingPrice * 2 / \
             len(slowEMAList)+slowAvrege*(1-(2/(len(slowEMAList)+1)))
-        Hist = fastEMA-slowEMA
+        MACD = fastEMA-slowEMA
+        Hist = MACD - signalAvrege
         return Hist
 
     def recommendationLogic(self, MACD_Hist, MACD_HistErlier, stock_price, date):
@@ -496,7 +504,7 @@ if __name__ == "__main__":
     a = test3.run_algorithm("RSI", {"result": {
                             "nrPeriod": 5, "periodLength": "1min", "buySignal": 30, "sellSignal": 40}})
     b = test3.run_algorithm("MACD", {"result": {
-        "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
+        "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2, "signalperiod": 3}})
     # c = test3.run_algorithm("MACD", {"result": {
     #     "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
     # print(c)
