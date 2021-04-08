@@ -102,7 +102,7 @@ def password_reset():
     if request.method == 'POST':
         email = request.form['email']
         try:
-            mail_sender.reset_pasword(email)
+            mail_sender.reset_password(email)
         except Exception:
             pass
         flash('Mail has been sent!')

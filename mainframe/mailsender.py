@@ -51,4 +51,3 @@ class MailSender:
 
 if __name__ == '__main__':
     ms = MailSender()
-    ms.send_email("elion.eriksson@hotmail.com")
