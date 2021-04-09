@@ -123,10 +123,11 @@ def password_reset():
     if request.method == 'POST':
         email = request.form['email']
         try:
-            mail_sender.reset_password(email)
+            code = mail_sender.reset_password(email)
+            dbInterface.set_reset_code(email, code)
+            flash('Mail has been sent to '+email+'!')
         except Exception:
             pass
-        flash('Mail has been sent to '+email+'!')
         return redirect(url_for('new_password'))
     
     return render_template('password_reset.html')
@@ -137,11 +138,12 @@ def new_password():
         code = request.form['code']
         newPassword = request.form['password']
 
-        #If code is correct then change password to newPassword
+        if dbInterface.change_password(code, newPassword):
+            flash('Password successfully changed!')
+            return redirect('login')
 
-        flash('Password successfully changed!')
-
-        return redirect('login')
+        msg = 'Code is incorrect, try again!'
+        return render_template("new_password.html", message = msg)
 
     return render_template("new_password.html")
 

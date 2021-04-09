@@ -45,13 +45,7 @@
           </nav>
           <div>
             {% if category %}
-              {% if category == "success" %}
-                <div class="alert alert-success" role="alert">
-              {% else %}
-                <div class="alert alert-danger" role="alert">
-              {% endif %}
-                <p><strong>Success! </strong>{{message}} <strong>Recommendation</strong> page!</p>
-              </div>
+                <div class="alert alert-danger" role="alert">{{msg}}</div>
             {% endif %}
           </div>
           <div class="container-fluid bg-light p-3 pb-5 rounded">
