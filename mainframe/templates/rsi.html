@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Stock Fluent | Algorithm</title>
+        <title>Stock Fluent | RSI</title>
         <link rel="stylesheet" type="text/css" href= "{{ url_for('static',filename='index.css') }}">
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -55,7 +55,7 @@
             {% endif %}
           </div>
           <div class="container-fluid bg-light p-3 pb-5 rounded">
-            <h2 class="mt-5 mb-5">MACD setup</h2>
+            <h2 class="mt-5 mb-5">RSI setup</h2>
             <form class="ml-4" action="" method="GET">
               <h5>Available stock:</h5>
               <label for="stockID">Stock</label>
@@ -66,7 +66,7 @@
                 <option value="GOOGL">Google</option>
               </select>
 
-              <br><h5>MACD Intervals:</h5>
+              <br><h5>Data point interval: </h5>
               <label for="interval">Intervals</label>
               <select id="interval" name="interval">
                 <option value="1:00">60 minutes</option>
@@ -80,62 +80,26 @@
                 <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"></path>
               </svg>
 
-              <!-- Button to Open the Modal -->
-              <br><button type="button" class="btn btn-link mt-4" data-toggle="modal" data-target="#myModal">
-                <h3>Exponential Moving Averages</h3>
-              </button>
-
-              <!-- The Modal -->
-              <div class="modal fade" id="myModal">
-                <div class="modal-dialog">
-                  <div class="modal-content">
-                  
-                    <!-- Modal Header -->
-                    <div class="modal-header">
-                      <h4 class="modal-title">What are Exponential Moving Averages?</h4>
-                      <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    </div>
-                    
-                    <!-- Modal body -->
-                    <div class="modal-body">
-                      <p>An <a href="https://www.investopedia.com/terms/e/ema.asp">Exponential Moving Average</a>, often referred to as EMA, is a type of Moving Average.</p>
-                      <p>A <a href="https://www.investopedia.com/terms/m/movingaverage.asp">Moving Average</a> is in turn a calculation used to analyze data points by creating 
-                        a series of averages of different subsets of the full data set.
-                      </p>
-                      <p>An EMA is different from a normal Moving Average due to it putting more weight
-                         and significance on recent prices than older prices.
-                      </p>
-                    </div>
-                    
-                    <!-- Modal footer -->
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                    </div>
-                    
-                  </div>
-                </div>
-              </div>
+              <br><h5 class="mt-2"><a href="#" data-toggle="popover" data-trigger="focus"
+                title="Number of periods" 
+                data-content="Some content inside the popover">
+                Number of periods</a></h5>
+              <label for="period">Minimum 1</label>
+              <input type="text" id="period" name="period" value="12">
 
               <br><h5 class="mt-2"><a href="#" data-toggle="popover" data-trigger="focus"
-                title="Long-term EMA" 
+                title="Overbought limit" 
                 data-content="Some content inside the popover">
-                Long-term EMA</a></h5>
-              <label for="fPeriod">Minimum 1</label>
-              <input type="text" id="fPeriod" name="fPeriod" value="26">
+                Overbought limit</a></h5>
+              <label for="overbought">Percentage</label>
+              <input type="text" id="overbought" name="overbought" value="70">
 
               <br><h5 class="mt-2"><a href="#" data-toggle="popover" data-trigger="focus"
-                title="Short-term EMA" 
+                title="Oversold limit" 
                 data-content="Some content inside the popover">
-                Short-term EMA</a></h5>
-              <label for="sPeriod">Minimum 1</label>
-              <input type="text" id="sPeriod" name="sPeriod" value="12">
-
-              <br><h5 class="mt-2"><a href="#" data-toggle="popover" data-trigger="focus"
-                title="Signal-line EMA" 
-                data-content="Some content inside the popover">
-                Signal-line EMA</a></h5>
-              <label for="lPeriod">Minimum 1</label>
-              <input type="text" id="lPeriod" name="lPeriod" value="9">
+                Oversoldsold limit</a></h5>
+              <label for="oversold">Percentage</label>
+              <input type="text" id="oversold" name="oversold" value="30">
 
               <br><input class="mt-2" type="submit" name="value" value="Run Algorithm">
 
