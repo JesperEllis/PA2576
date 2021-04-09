@@ -14,6 +14,7 @@ import threading
 import json
 
 
+
 class SystemManager:
     def __init__(self, prointer, recointer, stointer):
         self.profileinter = prointer
