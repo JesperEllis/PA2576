@@ -19,15 +19,14 @@ class MailSender:
         therfore needs receiver email as parameter!!
         
         """
-        code = self._code_generator.generate_code()
-        #skicka med länk
-        message = "Subject: Reset Password" + '\n\n' + f'A request to reset password on your account has been made! \n\nEnter the following code to choose a new password.\nYour code: {code}'
-        
         try:
+            code = self._code_generator.generate_code()
+            message = "Subject: Reset Password" + '\n\n' + f'A request to reset password on your account has been made! \n\nEnter the following code to choose a new password.\nYour code: {code}'
             self._send_email(receiver, message=message)
+            return code
         except Exception:
-            return "Email does not exsist"
-        return code
+            pass
+
 
     def send_recommendation(self, receiver):
         """
