@@ -43,7 +43,10 @@ class DatabaseInterface:
 
     def check_login(self, username, password):
         "get connection, then call apropiate procedure"
-        return self.connector.data_handler("logIn", [username, password])
+        x = self.connector.data_handler("logIn", [username, password])
+        a=[x[0][0], x[1][0]]
+        print(a)
+        return a
 
     def get_user_settings(self, username):
         "get connection, then call apropiate procedure"
@@ -81,12 +84,13 @@ class DatabaseInterface:
 
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
-        return self.connector.data_handler('emailExists',[email])
+        x = self.connector.data_handler('emailExists',[email])
+        return x[0][0]
 
     def change_password(self, email, new_password):
         "ny metod som elion kom på"
         "get connection, then call apropiate procedure"
-        self.connector.data_handler(changePassword, [new_password, email])
+        self.connector.data_handler('changePassword', [new_password, email])
 
     def ping_echo(self):
         "get connection, then call apropiate procedure"

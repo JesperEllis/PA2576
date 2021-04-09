@@ -12,3 +12,12 @@
         right: 40%;
     }
 }
+
+.help{
+    width: 20px;
+    transition: width 0.5s;
+}
+
+.help:hover{
+    width: 25px;
+}
