@@ -139,7 +139,10 @@ def signup():
 @login_required
 def logout():
     logout_user()
-    users_lst.remove(current_user)
+    for user in users_lst:
+        if user.get_id()==current_user.get_id():
+            users_lst.remove(user)
+            break
     flash("You have been logged out!")
     return redirect(url_for("home"))
 
