@@ -37,7 +37,8 @@ class DatabaseInterface:
         self.connector = dbconnector
 
     def create_user(self, email, password):
-        pass
+        '''If the email doesn't already exist, returns the new users userID. Else returns None.'''
+        return self.connector.data_handler("insertUser", [email, password])
 
     def check_login(self, username, password):
         "get connection, then call apropiate procedure"
@@ -79,12 +80,12 @@ class DatabaseInterface:
 
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
-        pass
+        return self.connector.data_handler('emailExists',[email])
 
     def change_password(self, email, new_password):
         "ny metod som elion kom på"
         "get connection, then call apropiate procedure"
-        pass
+        self.connector.data_handler(changePassword, [new_password, email])
 
     def ping_echo(self):
         "get connection, then call apropiate procedure"
