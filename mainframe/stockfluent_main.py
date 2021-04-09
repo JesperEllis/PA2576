@@ -185,7 +185,9 @@ user_emails = {"test@bth.se": User("test@bth.se", "pass")}
 
 @login_manager.user_loader
 def load_user(user_id):
-    for i in range(0, len(users_lst), -1):
+    print(user_id, users_lst)
+    for i in range( len(users_lst) -1 , 0, -1):
+        print(users_lst[i].get_id())
         if user_id == users_lst[i].get_id():
             return users_lst[i]
     return None
