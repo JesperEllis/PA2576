@@ -126,10 +126,24 @@ def password_reset():
             mail_sender.reset_password(email)
         except Exception:
             pass
-        flash('Mail has been sent!')
-        return redirect(url_for('home'))
+        flash('Mail has been sent to '+email+'!')
+        return redirect(url_for('new_password'))
     
     return render_template('password_reset.html')
+
+@app.route("/new_password", methods=['POST', 'GET'])
+def new_password():
+    if request.method == 'POST':
+        code = request.form['code']
+        newPassword = request.form['password']
+
+        #If code is correct then change password to newPassword
+
+        flash('Password successfully changed!')
+
+        return redirect('login')
+
+    return render_template("new_password.html")
 
 
 @app.route("/signup", methods=['POST', 'GET'])
