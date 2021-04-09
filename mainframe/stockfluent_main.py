@@ -21,7 +21,7 @@ def Algorithm():
     return render_template("algorithm.html")
 
 
-@app.route("/MACD", methods=["POST", "GET"])
+@app.route("/Algorithm/MACD", methods=["POST", "GET"])
 def MACD():
     stockName = request.args.get("stockID")
     interval = request.args.get("interval")
@@ -33,17 +33,31 @@ def MACD():
 
     if stockName and interval:
         interface = manager.get_recommendation_interface()
-        # interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
-        #                                     "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
+        #interface.run_algorithm({"result": {"algo_type": "MACD", "stock": stockName, "interval": interval,
+        #                                   "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
         msg = "The algortihm is running and you can see the results in the"
         # Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
         cat = "success"
     return render_template('macd.html', message=msg, category=cat)
 
-
 @app.route("/Algorithm/RSI")
 def RSI():
-    return "RSI"
+    stockName = request.args.get("stockID")
+    interval = request.args.get("interval")
+    period = request.args.get("period")
+    overbought = request.args.get("overbought")
+    oversold = request.args.get("oversold")
+    msg = None
+    cat = None
+
+    if stockName and interval:
+        interface = manager.get_recommendation_interface()
+        #interface.run_algorithm({"result": {"algo_type":"RSI",
+        #                    "stock": stockName,"nrPeriod": period, "interval": interval, "buySignal": oversold, "sellSignal": overbought}})
+        msg = "The algortihm is running and you can see the results in the"
+        # Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
+        cat = "success"
+    return render_template('rsi.html', message=msg, category=cat)
 
 
 @app.route("/Algorithm/Algo3")
