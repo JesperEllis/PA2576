@@ -4,13 +4,13 @@ import random
 import string
 
 class MailSender:
-    def __init__(self, code_generator):
+    def __init__(self):
         """attributes needed for SMTP server"""
         self._port = 465
         self._sender = "stockfluentinfo@gmail.com"
         self._password = "pa2576student"
         self._context = ssl.create_default_context()
-        self._code_generator = code_generator
+        self._code_generator = CodeGenerator()
 
     def reset_password(self, receiver):
         """
@@ -53,5 +53,5 @@ class CodeGenerator:
         return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
 if __name__ == '__main__':
-    ms = MailSender(CodeGenerator())
+    ms = MailSender()
     ms.reset_password('elion.eriksson@hotmail.com')
