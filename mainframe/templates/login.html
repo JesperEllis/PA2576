@@ -44,6 +44,13 @@
               </ul>
         </div>     
       </nav>
+      {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="alert alert-success" role="alert"><p>{{msg}}</p></div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
           <div>
             {% if incorrect %}
               <div class="alert alert-danger" role="alert">
