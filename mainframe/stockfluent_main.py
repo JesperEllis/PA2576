@@ -36,13 +36,15 @@ def MACD():
         # interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
         #                                     "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
         msg = "The algortihm is running and you can see the results in the"
-        #Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
+        # Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
         cat = "success"
-    return render_template('macd.html', message= msg, category=cat)
+    return render_template('macd.html', message=msg, category=cat)
+
 
 @app.route("/Algorithm/RSI")
 def RSI():
     return "RSI"
+
 
 @app.route("/Algorithm/Algo3")
 def Algo3():
@@ -51,27 +53,32 @@ def Algo3():
 @app.route("/Recommendations")
 def recommendation():
     """Take in stock info from the datebase and render it on the website"""
-    
+
     ticket = request.args.get("stockID")
     interval2 = request.args.get("interval")
 
     if ticket and interval2:
-        recommendationFromMain = dbInterface.get_recommendations(ticket, interval2)
+        recommendationFromMain = dbInterface.get_recommendations(
+            ticket, interval2)
         listDictonary = []
-        listOfKey = ["ReAction", "Price", "Date", "StockId", "Interval"] #Hur datan ser ut innan loop
-        #print(recommendationFromMain)
+        listOfKey = ["ReAction", "Price", "Date", "StockId",
+                     "Interval"]  # Hur datan ser ut innan loop
+        # print(recommendationFromMain)
         for dataInList in recommendationFromMain:
-            date = str(dataInList[2]).split(' ')[0] #Tar ut datum
-            time = str(dataInList[2]).split(' ')[1] #Tar ut tid
-            zipbObj = zip(listOfKey, dataInList) #Zipar ihop listorna, 
-            dictOfWords = dict(zipbObj) #Skapar en dictionary från zip objekt
-            dictOfWords['oDate'] = date #Lägger till datumet sist i dictionary
+            date = str(dataInList[2]).split(' ')[0]  # Tar ut datum
+            time = str(dataInList[2]).split(' ')[1]  # Tar ut tid
+            zipbObj = zip(listOfKey, dataInList)  # Zipar ihop listorna,
+            dictOfWords = dict(zipbObj)  # Skapar en dictionary från zip objekt
+            # Lägger till datumet sist i dictionary
+            dictOfWords['oDate'] = date
             dictOfWords['oTime'] = time
-            listDictonary.append(dictOfWords) #Lägger till dictionay i en list
-            
+            # Lägger till dictionay i en list
+            listDictonary.append(dictOfWords)
+
         print(listDictonary)
 
-        return render_template('recommendation.html', listDictonary=listDictonary) #Skickat in listan listDictonary i html
+        # Skickat in listan listDictonary i html
+        return render_template('recommendation.html', listDictonary=listDictonary)
     else:
         return render_template('recommendation.html')
 
@@ -169,10 +176,7 @@ def load_user(user_id):
             return users_lst[i]
     return None
 
+
 if __name__ == "__main__":
-    manager,dbInterface = main.setUp()
+    manager, dbInterface = main.setUp()
     app.run(debug=True)
-
-
-
-
