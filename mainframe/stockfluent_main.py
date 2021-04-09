@@ -21,7 +21,7 @@ def Algorithm():
     return render_template("algorithm.html")
 
 
-@app.route("/Algorithm/MACD", methods=["POST", "GET"])
+@app.route("/MACD", methods=["POST", "GET"])
 def MACD():
     stockName = request.args.get("stockID")
     interval = request.args.get("interval")
@@ -104,6 +104,20 @@ def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fix
     else: 
         return render_template("login.html")
 
+@app.route("/password_reset", methods=['POST', 'GET'])
+def password_reset():
+    if request.method == 'POST':
+        email = request.form['email']
+        try:
+            mail_sender.reset_password(email)
+        except Exception:
+            pass
+        flash('Mail has been sent!')
+        return redirect(url_for('home'))
+    
+    return render_template('password_reset.html')
+
+
 @app.route("/signup", methods=['POST', 'GET'])
 def signup():
 
@@ -124,8 +138,11 @@ def signup():
 @app.route("/logout")
 @login_required
 def logout():
-    logout_user(current_user)################################
-    users_lst.remove(current_user)#############################
+    logout_user()
+    for user in users_lst:
+        if user.get_id()==current_user.get_id():
+            users_lst.remove(user)
+            break
     flash("You have been logged out!")
     return redirect(url_for("home"))
 
@@ -171,12 +188,15 @@ user_emails = {"test@bth.se": User("test@bth.se", "pass")}
 
 @login_manager.user_loader
 def load_user(user_id):
-    for i in range(0, len(users_lst, -1)):
+    print(user_id, users_lst)
+    for i in range( len(users_lst) -1 , 0, -1):
+        print(users_lst[i].get_id())
         if user_id == users_lst[i].get_id():
             return users_lst[i]
     return None
 
 
 if __name__ == "__main__":
-    manager, dbInterface = main.setUp()
+    manager,dbInterface = main.setUp()
+    mail_sender = MailSender()
     app.run(debug=True)
