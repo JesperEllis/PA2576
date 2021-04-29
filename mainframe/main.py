@@ -43,7 +43,7 @@ class DatabaseInterface:
     def check_login(self, username, password):
         "get connection, then call apropiate procedure"
         x = self.connector.data_handler("logIn", [username, password])
-        a=[x[0][0], x[1][0]]
+        a = [x[0][0], x[1][0]]
         print(a)
         return a
 
@@ -57,12 +57,13 @@ class DatabaseInterface:
 
     def get_stockdata(self, stock_ID, nbr_of_data_points, interval):
         "get connection, then call apropiate procedure"
-        return self.connector.data_handler("getStockData",[stock_ID,nbr_of_data_points,interval])
+        return self.connector.data_handler("getStockData", [stock_ID, nbr_of_data_points, interval])
 
     def set_stockdata(self, stock_list):
         "get connection, then call apropiate procedure"
         for items in stock_list[0].keys():
-            self.connector.data_handler("insertStockData",[stock_list[1]['2. Symbol'],items,stock_list[0][items]["4. close"]])
+            self.connector.data_handler("insertStockData", [
+                                        stock_list[1]['2. Symbol'], items, stock_list[0][items]["4. close"]])
 
     def get_recommendations(self, stockId, interval):
         # print(self.connector.data_handler('getRecommendation', [stockId, interval]))
@@ -72,18 +73,19 @@ class DatabaseInterface:
         # return recommendation
 
     def set_recommendation(self, algoID, recommendation):
-        self.connector.data_handler('insertRecommendation', [algoID, recommendation["date"], recommendation["recAction"], recommendation["price"]])
+        self.connector.data_handler('insertRecommendation', [
+                                    algoID, recommendation["date"], recommendation["recAction"], recommendation["price"]])
         print("Set_recommendation")
         "get connection, then call apropiate procedure"
 
     def set_algorithm(self, settings):
         ''' Returns a list with the algoID on the first position and a bool telling if the algorithm already existed or not'''
-        algoID = self.connector.data_handler('setAlgorithm',[settings])
+        algoID = self.connector.data_handler('setAlgorithm', [settings])
         return algoID
 
     def check_mail_existence(self, email):
         "get connection, then call apropiate procedure"
-        x = self.connector.data_handler('emailExists',[email])
+        x = self.connector.data_handler('emailExists', [email])
         return x[0][0]
 
     def change_password(self, email, new_password):
@@ -104,7 +106,8 @@ class DatabaseConnector:
     def data_handler(self, func, arg=None):
         self.lock.acquire()
         if not self.connection:
-            self.connection = MySQLConnection(host='localhost',database ='StockFluent', user = 'root')
+            self.connection = MySQLConnection(
+                host='localhost', database='StockFluent', user='root')
         cnx = self.connection.cursor(dictionary=True)
         if arg == None:
             cnx.callproc(func)
@@ -162,7 +165,7 @@ class MailSender:
 
 
 class RecommendationInterface:
-
+    # The controller of the algorithm moduel. Knows the algortims that are running and starts and create the algoritms
     def __init__(self, databaseInterface):
         self.avalible_algo = []
         self.db_interface = databaseInterface
@@ -188,7 +191,7 @@ class RecommendationInterface:
             return new_algo
 
     def run_algorithm(self, settings):
-        b= json.dumps(settings)
+        b = json.dumps(settings)
         a = self.db_interface.set_algorithm(b)
         # a en lista med algoid och True False [algoID,Bool]
         # if not a[1][0]:
@@ -205,6 +208,7 @@ class RecommendationInterface:
 
 
 class Algorithm(Thread):
+    # abstract algoritm class
     @abstractmethod
     def __init__(self, settings, DB, algoID):
         Thread.__init__(self)
@@ -240,7 +244,8 @@ class MACD(Algorithm):
     def run(self):
         i = 0
         while self.alive == True and i < 1:
-            result = self.db_interface.get_stockdata(self.settings["result"]["stock"],self.settings["result"]["slowperiod"]+1,self.settings["result"]["interval"] )
+            result = self.db_interface.get_stockdata(
+                self.settings["result"]["stock"], self.settings["result"]["slowperiod"]+1, self.settings["result"]["interval"])
             resultErlier = result[1:]
             date, closePrice, fastEMAList, slowEMAList, signalLine = self.unpackData(
                 result)
@@ -252,7 +257,7 @@ class MACD(Algorithm):
                 closePriceErlier, fastEMAListErlier, slowEMAListErlier, signalLineErlier)
             recommendation = self.recommendationLogic(
                 MACD_Hist, MACD_HistErlier, closePrice, date)
-            self.db_interface.set_recommendation(self.algoID,recommendation)
+            self.db_interface.set_recommendation(self.algoID, recommendation)
             time.sleep(10)
             i += 1
 
@@ -321,7 +326,8 @@ class RSI(Algorithm):
         i = 0
         while self.alive == True and i < 1:
             # get nrPeriod st List med periodlength mellanrum
-            dataList = self.db_interface.get_stockdata(self.settings["result"]["stock"],self.settings["result"]["nrPeriod"]+1,self.settings["result"]["interval"])
+            dataList = self.db_interface.get_stockdata(
+                self.settings["result"]["stock"], self.settings["result"]["nrPeriod"]+1, self.settings["result"]["interval"])
             dataList, closingPrice, date = self.unpackData(dataList)
             avregeGain, avregeLoss = 0, 0
             for data in dataList:
@@ -336,7 +342,7 @@ class RSI(Algorithm):
             else:
                 RSI = 100
             recommendation = self.recommendationLogic(RSI, closingPrice, date)
-            self.db_interface.set_recommendation(self.algoID,recommendation)
+            self.db_interface.set_recommendation(self.algoID, recommendation)
             time.sleep(10)
             i += 1
 
@@ -370,6 +376,7 @@ class FibonacciRetracement(Algorithm):
 
 
 class Recommendation:
+    # create the recomendation
     def __init__(self, recAction, stock_price, stock_date, settings):
         self.recAction = recAction
         self.stock_price = stock_price
@@ -413,7 +420,8 @@ class StockdataInterface:
         return self.my_api_connector.get_days(stock)
 
     def get_intraday(self, stock):
-        self.db_interface.set_stockdata(self.my_api_connector.get_intraday(stock))
+        self.db_interface.set_stockdata(
+            self.my_api_connector.get_intraday(stock))
 
 
 class ApiConnector:
@@ -501,10 +509,10 @@ if __name__ == "__main__":
     SDI = StockdataInterface(DB, ApiConnector(api_key))
     # SDI.get_intraday("AAPL")
     test3 = RecommendationInterface(DB)
-    a = test3.run_algorithm({"result": {"algo_type":"RSI",
-                            "stock": "AAPL","nrPeriod": 5, "interval": "0:01", "buySignal": 30, "sellSignal": 40}})
-    b = test3.run_algorithm({"result": {"algo_type":"MACD",
-        "stock": "AAPL", "interval": "0:01", "fastperiod": 1, "slowperiod": 2, "signalperiod": 3}})
+    a = test3.run_algorithm({"result": {"algo_type": "RSI",
+                                        "stock": "AAPL", "nrPeriod": 5, "interval": "0:01", "buySignal": 30, "sellSignal": 40}})
+    b = test3.run_algorithm({"result": {"algo_type": "MACD",
+                                        "stock": "AAPL", "interval": "0:01", "fastperiod": 1, "slowperiod": 2, "signalperiod": 3}})
     # c = test3.run_algorithm("MACD", {"result": {
     #     "stock": "AAPL", "interval": "1min", "fastperiod": 1, "slowperiod": 2}})
     # print(c)
@@ -516,17 +524,14 @@ if __name__ == "__main__":
     #     {"nrPeriod": 3, "periodLength": "1min", "buySignal": 30, "sellSignal": 70})
 # {"MACD", {"result": {
 #         "stock": "AAPL", "interval": "1min", "fastperiod": 2, "slowperiod": 6, "signalperiod": 9}: MACD()}
-    
+
     # test with Apple stock and 5min interval
     # print(test.get_macd("AAPL", "5min"))
     # test2 = StockdataInterface(databaseInterface, ApiConnector(api_key))
     # test3= RecommendationInterface("databaseInterface", test2)
     # test3.run_algorithm("MACD", {"result": {"stock": "AAPL", "interval": "1min",
-                            # "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
+    # "fastperiod": 12, "slowperiod": 26, "signalperiod": 9}})
     # dbConnector = DatabaseConnector("usr", "psw")
     # dbInterface = DatabaseInterface(dbConnector)
     # test2.get_intraday('AAPL')
     # print(databaseInterface.get_stockdata('AAPL', 3, '0:10'))
-    
-
-
