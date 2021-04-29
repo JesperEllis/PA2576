@@ -165,7 +165,8 @@ class MailSender:
 
 
 class RecommendationInterface:
-    # The controller of the algorithm moduel. Knows the algortims that are running and starts and create the algoritms
+    ''' The controller of the algorithm moduel. Knows the algortims that are running and starts and create the algoritms'''
+
     def __init__(self, databaseInterface):
         self.avalible_algo = []
         self.db_interface = databaseInterface
@@ -208,7 +209,7 @@ class RecommendationInterface:
 
 
 class Algorithm(Thread):
-    # abstract algoritm class
+    '''abstract algoritm class not fully implemented'''
     @abstractmethod
     def __init__(self, settings, DB, algoID):
         Thread.__init__(self)
@@ -227,7 +228,7 @@ class Algorithm(Thread):
 
     @abstractmethod
     def kill(self):
-        self.is_alive = False
+        self.alive = False
 
     @abstractmethod
     def is_alive(self):
@@ -237,10 +238,12 @@ class Algorithm(Thread):
 class MACD(Algorithm):
     def __init__(self, settings, DB, algoID):
         super().__init__(settings, DB, algoID)
-        # Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy
+        ''' Gives the user recomendations when the market is bearich, Bullich, when to sell and when to buy'''
 
-        # "MACD", {"result": {"stock": stockName, "interval": interval,
-        #                                     "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}
+        '''" The algoritm settings coming in from the website interface
+        MACD", {"result": {"stock": stockName, "interval": interval,
+                                            "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}'''
+
     def run(self):
         i = 0
         while self.alive == True and i < 1:
@@ -280,7 +283,7 @@ class MACD(Algorithm):
         return date, closePrice, fastEMAList, slowEMAList, signalLine
 
     def create_Hist(self, closingPrice, fastEMAList, slowEMAList, signalLine):
-        # signal line
+        ''' signal line return the Histogram value in the MACD algoritm'''
         fastAvrege = sum(fastEMAList)/len(fastEMAList)
         slowAvrege = sum(slowEMAList)/len(slowEMAList)
         signalAvrege = sum(signalLine)/len(signalLine)
@@ -318,14 +321,15 @@ class MACD(Algorithm):
 
 
 class RSI(Algorithm):
-    # settings {nrPeriod:5 periodLength:1min buySignal:30 sellSignal:70}
+    '''settings {nrPeriod:5 periodLength:1min buySignal:30 sellSignal:70}'''
+
     def __init__(self, settings, DB, algoID):
         super().__init__(settings, DB, algoID)
 
     def run(self):
         i = 0
         while self.alive == True and i < 1:
-            # get nrPeriod st List med periodlength mellanrum
+            '''get nrPeriod st List med periodlength mellanrum'''
             dataList = self.db_interface.get_stockdata(
                 self.settings["result"]["stock"], self.settings["result"]["nrPeriod"]+1, self.settings["result"]["interval"])
             dataList, closingPrice, date = self.unpackData(dataList)
@@ -361,6 +365,10 @@ class RSI(Algorithm):
         return dataList, closePrice, date
 
     def recommendationLogic(self, RSI, stock_price, date):
+        '''The lodgic behind the recomendations. If the RSI
+        is bellow buySignal settings it is time to buy and 
+        if it is over sellSignal it is time to sell'''
+
         if RSI < self.settings["result"]["buySignal"]:
             rec = Recommendation("Buy", stock_price, date, self.settings)
             return rec.get_recomendation_info()
@@ -371,12 +379,14 @@ class RSI(Algorithm):
 
 
 class FibonacciRetracement(Algorithm):
+    #not implemented
     def __init__(self):
         pass
 
 
 class Recommendation:
-    # create the recomendation
+    '''create the recomendation from the algoritm'''
+
     def __init__(self, recAction, stock_price, stock_date, settings):
         self.recAction = recAction
         self.stock_price = stock_price
