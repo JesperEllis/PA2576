@@ -15,6 +15,9 @@ import json
 
 
 class SystemManager:
+    """
+    Responsability: To handle request from flask script called stockfluent_main.pyu to the main python script, main.py. It forwards the request to apropiate component interface.
+    """
     def __init__(self, prointer, recointer, stointer):
         self.profileinter = prointer
         self.recommendationinter = recointer
@@ -33,6 +36,9 @@ class SystemManager:
 
 
 class DatabaseInterface:
+    """
+    Responsability: To handle all communication with the databse and therfore it is the only object thats knows about the database and its procedures
+    """
     def __init__(self, dbconnector):
         self.connector = dbconnector
 
@@ -97,6 +103,9 @@ class DatabaseInterface:
 
 
 class DatabaseConnector:
+    """
+    Responsability: To establish connection with the database
+    """
     def __init__(self, username, password):
         self.connection = None
         self.lock = threading.Lock()
@@ -123,6 +132,9 @@ class DatabaseConnector:
 
 
 class ProfileInterface:
+    """
+    Responsability: To handle all communication with the profile component.
+    """
     def __init__(self, databaseInterface):
         self.db_interface = databaseInterface
         self.active_users = []
@@ -162,7 +174,9 @@ class MailSender:
 
 
 class RecommendationInterface:
-
+    """
+    Responsability: To handle all communication with the recommendation component.
+    """
     def __init__(self, databaseInterface):
         self.avalible_algo = []
         self.db_interface = databaseInterface
@@ -387,6 +401,9 @@ class Recommendation:
 
 
 class StockdataInterface:
+    """
+    Responsability: To handle all communication with the stock data component.
+    """
     def __init__(self, databaseInterface, api_connector):
         self.db_interface = databaseInterface
         self.my_api_connector = api_connector
@@ -417,6 +434,9 @@ class StockdataInterface:
 
 
 class ApiConnector:
+    """
+    Responsability: To connecto to the alpha vantage api.
+    """
     def __init__(self, api_key):
         """Api objects instanciated with api_key"""
         self.key = api_key

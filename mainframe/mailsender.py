@@ -15,12 +15,11 @@ class MailSender:
 
     def reset_password(self, receiver):
         """
-        Entry method for flask script to request reset password functionality
+        Entry method for flask script to request reset password functionality.
         Currently the method does not know about tha DatabaseInterface and
         therfore needs receiver email as parameter!!
         
         """
-        #skicka med länk
         message = "Subject: Reset Password" + '\n\n' + f'{receiver}'
         try:
             self._send_email(receiver, message=message)
@@ -30,7 +29,7 @@ class MailSender:
 
     def send_recommendation(self, receiver):
         """
-        Entry method for flask script to request reset password functionality
+        Entry method for flask script to request send recommendation to user.
         Currently the method does not know about tha DatabaseInterface and
         therfore needs receiver email as parameter!!
         
@@ -41,6 +40,7 @@ class MailSender:
         
     
     def _send_email(self, receiver, message):
+        """Private method that both entry methods usses to send their messages"""
         with smtplib.SMTP_SSL("smtp.gmail.com", self._port, context=self._context) as server:
             try:
                 server.login(self._sender, self._password)
