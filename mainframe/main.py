@@ -99,10 +99,10 @@ class DatabaseInterface:
     def change_password(self, email, new_password):
         "ny metod som elion kom på"
         "get connection, then call apropiate procedure"
-        self.connector.data_handler('changePassword', [new_password, email])
+        return self.connector.data_handler('changePassword', [new_password, email])[0]
 
     def set_reset_code(self, email, code):
-        pass
+        self.connector.data_handler('setResetCode', [email, code])
 
     def ping_echo(self):
         "get connection, then call apropiate procedure"
