@@ -101,6 +101,9 @@ class DatabaseInterface:
         "get connection, then call apropiate procedure"
         self.connector.data_handler('changePassword', [new_password, email])
 
+    def set_reset_code(self, email, code):
+        pass
+
     def ping_echo(self):
         "get connection, then call apropiate procedure"
         pass

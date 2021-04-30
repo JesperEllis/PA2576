@@ -21,7 +21,7 @@ def Algorithm():
     return render_template("algorithm.html")
 
 
-@app.route("/MACD", methods=["POST", "GET"])
+@app.route("/Algorithm/MACD", methods=["POST", "GET"])
 def MACD():
     stockName = request.args.get("stockID")
     interval = request.args.get("interval")
@@ -33,17 +33,31 @@ def MACD():
 
     if stockName and interval:
         interface = manager.get_recommendation_interface()
-        # interface.run_algorithm("MACD", {"result": {"stock": stockName, "interval": interval,
-        #                                     "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
+        #interface.run_algorithm({"result": {"algo_type": "MACD", "stock": stockName, "interval": interval,
+        #                                   "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
         msg = "The algortihm is running and you can see the results in the"
         # Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
         cat = "success"
     return render_template('macd.html', message=msg, category=cat)
 
-
 @app.route("/Algorithm/RSI")
 def RSI():
-    return "RSI"
+    stockName = request.args.get("stockID")
+    interval = request.args.get("interval")
+    period = request.args.get("period")
+    overbought = request.args.get("overbought")
+    oversold = request.args.get("oversold")
+    msg = None
+    cat = None
+
+    if stockName and interval:
+        interface = manager.get_recommendation_interface()
+        #interface.run_algorithm({"result": {"algo_type":"RSI",
+        #                    "stock": stockName,"nrPeriod": period, "interval": interval, "buySignal": oversold, "sellSignal": overbought}})
+        msg = "The algortihm is running and you can see the results in the"
+        # Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
+        cat = "success"
+    return render_template('rsi.html', message=msg, category=cat)
 
 
 @app.route("/Algorithm/Algo3")
@@ -109,13 +123,29 @@ def password_reset():
     if request.method == 'POST':
         email = request.form['email']
         try:
-            mail_sender.reset_password(email)
+            code = mail_sender.reset_password(email)
+            dbInterface.set_reset_code(email, code)
+            flash('Mail has been sent to '+email+'!')
         except Exception:
             pass
-        flash('Mail has been sent!')
-        return redirect(url_for('home'))
+        return redirect(url_for('new_password'))
     
     return render_template('password_reset.html')
+
+@app.route("/new_password", methods=['POST', 'GET'])
+def new_password():
+    if request.method == 'POST':
+        code = request.form['code']
+        newPassword = request.form['password']
+
+        if dbInterface.change_password(code, newPassword):
+            flash('Password successfully changed!')
+            return redirect('login')
+
+        msg = 'Code is incorrect, try again!'
+        return render_template("new_password.html", message = msg)
+
+    return render_template("new_password.html")
 
 
 @app.route("/signup", methods=['POST', 'GET'])
