@@ -36,8 +36,8 @@ def MACD():
 
     if stockName and interval:
         interface = manager.get_recommendation_interface()
-        #interface.run_algorithm({"result": {"algo_type": "MACD", "stock": stockName, "interval": interval,
-        #                                   "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}}) För att kunna testa hemsidan
+        interface.run_algorithm({"result": {"algo_type": "MACD", "stock": stockName, "interval": interval,
+                                          "fastperiod": fPeriod, "slowperiod": sPeriod, "signalperiod": lPeriod}})# För att kunna testa hemsidan
         msg = "The algortihm is running and you can see the results in the"
         # Denna variabel avgör vad för meddelande som ska visas på hemsidan, sätt till danger om algo ej körde pga fel
         cat = "success"

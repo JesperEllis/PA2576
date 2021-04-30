@@ -218,7 +218,9 @@ class RecommendationInterface:
         # a en lista med algoid och True False [algoID,Bool]
         # if not a[1][0]:
         algo = self._create_algo(a[0][0], settings)
+        print('hello')
         algo.start()
+        print('goodbye')
         return a[0][0]
 
     def kill(self, algoID):
@@ -269,7 +271,7 @@ class MACD(Algorithm):
         i = 0
         while self.alive == True and i < 1:
             result = self.db_interface.get_stockdata(
-                self.settings["result"]["stock"], self.settings["result"]["slowperiod"]+1, self.settings["result"]["interval"])
+                self.settings["result"]["stock"], int(self.settings["result"]["slowperiod"]) + 1, self.settings["result"]["interval"])
             resultErlier = result[1:]
             date, closePrice, fastEMAList, slowEMAList, signalLine = self.unpackData(
                 result)
@@ -292,9 +294,9 @@ class MACD(Algorithm):
         date = data[0][0]
         date = date.strftime('%Y-%m-%d %H:%M')
         closePrice = data[0][1]
-        fastdata = data[:self.settings["result"]["fastperiod"]]
-        slowdata = data[:self.settings["result"]["slowperiod"]]
-        signalLinedata = data[:self.settings["result"]["signalperiod"]]
+        fastdata = data[:int(self.settings["result"]["fastperiod"])]
+        slowdata = data[:int(self.settings["result"]["slowperiod"])]
+        signalLinedata = data[:int(self.settings["result"]["signalperiod"])]
         for value in fastdata:
             fastEMAList.append(value[1])
         for value in slowdata:
