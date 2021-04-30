@@ -7,6 +7,9 @@ import importlib
 import datetime
 import re
 from mailsender import MailSender
+#import fernet from cryptography
+from cryptography.fernet import Fernet
+
 
 app = Flask(__name__)
 app.secret_key = "sotck45&%204()ON)????=)(/&&"
@@ -98,6 +101,7 @@ def recommendation():
 
 @app.route("/login", methods=['POST', 'GET'])
 def login(): 
+
     key = Fernet.generate_key()
     crypter = Fernet(key)
 
@@ -108,7 +112,7 @@ def login():
 
         myconn = mysql.connector.connect(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas") #Ansluter till databasen
         cur = myconn.cursor() # det är en cursor, pekare av något slag
-        sql = "insert into user (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
+        sql = "insert into Users (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
         val = (email, passwordCrypt) #Det som hamnar i %s och %s
         cur.execute(sql, val) #Execute, slår ihop SQL och val och får en komplett query
         myconn.commit() # lägger in det i databasen
@@ -116,8 +120,6 @@ def login():
 
         deCryptPassword = crypter.decrypt(passwordCrypt) #Omvandlar krypteringen till det riktiga lösenordet
         print(deCryptPassword)
-
-
 
         db_result = dbInterface.check_login(email, password)
         if db_result[0]:
@@ -171,6 +173,7 @@ def signup():
     if request.method == "POST":
         email = request.form['email']
         password = request.form['password']
+        #kryptering
 
         if dbInterface.check_mail_existence(email):
             return render_template("signup.html", exists = True)
