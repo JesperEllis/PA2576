@@ -1,25 +1,167 @@
+DROP TABLE StockData;
+CREATE TABLE StockData ( 
+stockID VARCHAR(60) NOT NULL,
+dates DATETIME NOT NULL,
+closingPrice DOUBLE,
+CONSTRAINT StockData_PK PRIMARY KEY (stockID, dates)
+);
+
+DROP TABLE Algorithms;
+CREATE TABLE Algorithms (
+algoID INT NOT NULL AUTO_INCREMENT,
+settings TEXT,
+PRIMARY KEY(algoID)
+);
+
 DROP TABLE Recommendations;
 CREATE TABLE Recommendations(
-    recAction VARCHAR(10),
-    price DOUBLE,
-    time TIMESTAMP NOT NULL ,
-    stockId VARCHAR(60) NOT NULL ,
-    inter VARCHAR(60) NOT NULL ,
-    CONSTRAINT PK_recommendations PRIMARY KEY (time,stockId,inter));
+algoID INT NOT NULL,
+generatedDate DATETIME NOT NULL,
+recValue VARCHAR(10),
+price DOUBLE,
+CONSTRAINT Recommendations_PK PRIMARY KEY(algoID,generatedDate),
+FOREIGN KEY (algoID) REFERENCES Algorithms(algoID)
+);
 
-DROP PROCEDURE insertRecommendation;
+DROP TABLE Users;
+CREATE TABLE Users(
+userID INT NOT NULL AUTO_INCREMENT,
+email VARCHAR(100),
+password VARCHAR(100),
+algorithms TEXT,
+PRIMARY KEY(userID)
+);
+
+INSERT INTO StockData value ('AGGL', '2021-03-20 12:38', 122.48);
+
+INSERT INTO StockData values
+('BGGL', '2021-03-20 12:39:00', 122.49),('BGGL', '2021-03-20 12:40:00', 122.49),('BGGL', '2021-03-20 12:41:00', 121.27),('BGGL', '2021-03-20 12:42:00', 122.48),
+('BGGL', '2021-03-20 12:43:00', 122.48),('BGGL', '2021-03-20 12:44:00', 122.48),('BGGL', '2021-03-20 12:45:00', 122.48);
+
+
+
+
 DELIMITER //
-CREATE PROCEDURE insertRecommendation (recActionA VARCHAR(10), priceA DOUBLE, timeA TIMESTAMP, stockIdA VARCHAR(60), interA VARCHAR(60))
-    BEGIN
-    INSERT INTO Recommendations
-        VALUES(recActionA, priceA, timeA, stockIdA, interA);
+DROP procedure getStockData//
+CREATE PROCEDURE getStockData (aStockID VARCHAR(60), nbrOfPoints INT, aInterval TIME)
+BEGIN
+	DECLARE counter INT DEFAULT 0;
+    DECLARE tmp DATETIME;
+    DECLARE tmpTIME DATETIME;
+	SELECT dates FROM StockData WHERE aStockID = stockID ORDER BY dates DESC LIMIT 1 INTO tmp;
+	WHILE counter <= nbrOfPoints DO
+		SET tmpTIME = SUBTIME(tmp, SEC_TO_TIME(TIME_TO_SEC(aInterval)*counter));
+		select dates, closingPrice FROM StockData WHERE dates = tmpTIME AND aStockID = stockID;
+        SET counter = counter + 1;
+    END WHILE;
+END//
+DELIMITER ;
+
+select * FROM StockData WHERE dates = ADDTIME('2021-03-20 12:45','-0:01'*2);
+CALL getStockData('AGGL', 3, '0:02');
+select * FROM StockData WHERE dates = SUBTIME('2021-03-20 12:45', SEC_TO_TIME(TIME_TO_SEC('0:01')*3));
+SELECT SUBTIME('2021-03-20 12:45:00', SEC_TO_TIME(TIME_TO_SEC('0:01')*2));
+SELECT * FROM StockData;
+
+DELIMITER // 
+DROP PROCEDURE insertStockData//
+CREATE PROCEDURE insertStockData(aStockID VARCHAR(60), aDates DATETIME, aClosingPrice DOUBLE)
+	IF (SELECT stockID FROM StockData WHERE aStockID = stockID AND aDates = dates) IS NULL THEN
+		INSERT INTO StockData value(aStockID, aDates, aClosingPrice);
+	END IF//
+DELIMITER ;
+
+CALL insertStockData('AAPL','2021-03-22 12:45:00', 122.1);
+SELECT * FROM StockData;
+
+DELIMITER //
+DROP PROCEDURE setAlgorithm//
+CREATE PROCEDURE setAlgorithm(aSettings TEXT)
+BEGIN
+    DECLARE aAlgoID INT;
+    DECLARE alreadyExist BOOL DEFAULT TRUE;
+    SET aAlgoID = (SELECT algoID FROM Algorithms WHERE aSettings = settings);
+    IF aAlgoID IS NULL THEN
+		INSERT INTO Algorithms(settings) VALUE(aSettings);
+        SET alreadyExist = FALSE;
+        SET aAlgoID = (SELECT algoID FROM Algorithms WHERE aSettings = settings);
+	END IF;
+    SELECT aAlgoID;
+    SELECT alreadyExist;
     END//
 DELIMITER ;
 
+CALL setAlgorithm('blabla', 'AAPL');
+SELECT * FROM Algorithms;
 
 DELIMITER //
-CREATE PROCEDURE getRecommendation(sID VARCHAR(60), itl VARCHAR(60))
+DROP PROCEDURE logIn//
+CREATE PROCEDURE logIn(aEmail VARCHAR(100), aPassword VARCHAR(100))
 BEGIN
-    SELECT * FROM Recommendations WHERE (sID=stockId) AND (itl = inter);
+    DECLARE correct BOOL DEFAULT TRUE;
+	DECLARE aUserID INT;
+	SET aUserID = (SELECT userID FROM Users WHERE (aEmail = email AND aPassword = password));
+	IF aUserID IS NULL THEN
+		SET correct = FALSE;
+	END IF;
+	SELECT correct;
+    SELECT aUserID;
+    END//
+DELIMITER ;
+
+CALL logIN('ngtngt@outlook.com', 'ABC123!');
+
+DELIMITER //
+DROP PROCEDURE emailExists//
+CREATE PROCEDURE emailExists(aEmail VARCHAR(100))
+BEGIN
+	DECLARE alreadyExists BOOL DEFAULT FALSE;
+    IF aEmail = ANY(SELECT email FROM Users) THEN
+		SET alreadyExists = TRUE;
+	END IF;
+    SELECT alreadyExists;
 END//
+DELIMITER ;
+
+CALL emailExists('ngtt@outlook.com');
+
+DELIMITER //
+DROP PROCEDURE changePassword//
+CREATE PROCEDURE changePassword(newPassword VARCHAR(100), aEmail VARCHAR(100))
+BEGIN
+	DECLARE aUserID INT;
+    SET aUserID = (SELECT userID FROM Users WHERE aEmail = email);
+	IF aUserID IS NOT NULL THEN
+		UPDATE Users 
+        SET password = newPassword
+        WHERE userID = aUserID;
+	END IF;
+END//
+DELIMITER ;
+
+CALL changePassword('hej123', 'ngt@outlook.co');
+
+DELIMITER //
+DROP PROCEDURE insertUser//
+CREATE PROCEDURE insertUser(aEmail VARCHAR(100), aPassword VARCHAR(100))
+BEGIN
+	DECLARE aUserID INT;
+    SET aUserID = (SELECT userID FROM Users WHERE aEmail = email);
+	IF aUserID IS NULL THEN
+		INSERT INTO Users(email, password) VALUE(aEmail, aPassword);
+        SELECT userID FROM Users WHERE aEmail = email;
+	END IF;
+END//
+DELIMITER ;
+
+CALL insertUser('ngtngtngt@gmail.com', 'hejhej');
+SELECT * FROM Users;
+SELECT * FROM StockData;
+SELECT * FROM Algorithms;
+
+DELIMITER //
+DROP PROCEDURE insertRecommendation//
+CREATE PROCEDURE insertRecommendation(aAlgoID INT, aDate DATETIME, aRecValue VARCHAR(10), aPrice DOUBLE) 
+	INSERT INTO recommendations VALUE(aAlgoID, aDate, aRecValue, aPrice)
+//
 DELIMITER ;
