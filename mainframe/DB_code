@@ -32,15 +32,8 @@ algorithms TEXT,
 PRIMARY KEY(userID)
 );
 
-INSERT INTO StockData value ('AGGL', '2021-03-20 12:38', 122.48);
 
-INSERT INTO StockData values
-('BGGL', '2021-03-20 12:39:00', 122.49),('BGGL', '2021-03-20 12:40:00', 122.49),('BGGL', '2021-03-20 12:41:00', 121.27),('BGGL', '2021-03-20 12:42:00', 122.48),
-('BGGL', '2021-03-20 12:43:00', 122.48),('BGGL', '2021-03-20 12:44:00', 122.48),('BGGL', '2021-03-20 12:45:00', 122.48);
-
-
-
-
+## Retrives stockdata from the StockData table, based on stockID, how many points to be fetched and with a given interval.
 DELIMITER //
 DROP procedure getStockData//
 CREATE PROCEDURE getStockData (aStockID VARCHAR(60), nbrOfPoints INT, aInterval TIME)
@@ -57,12 +50,7 @@ BEGIN
 END//
 DELIMITER ;
 
-select * FROM StockData WHERE dates = ADDTIME('2021-03-20 12:45','-0:01'*2);
-CALL getStockData('AGGL', 3, '0:02');
-select * FROM StockData WHERE dates = SUBTIME('2021-03-20 12:45', SEC_TO_TIME(TIME_TO_SEC('0:01')*3));
-SELECT SUBTIME('2021-03-20 12:45:00', SEC_TO_TIME(TIME_TO_SEC('0:01')*2));
-SELECT * FROM StockData;
-
+## Inserts stock data into the table StockData
 DELIMITER // 
 DROP PROCEDURE insertStockData//
 CREATE PROCEDURE insertStockData(aStockID VARCHAR(60), aDates DATETIME, aClosingPrice DOUBLE)
@@ -71,9 +59,7 @@ CREATE PROCEDURE insertStockData(aStockID VARCHAR(60), aDates DATETIME, aClosing
 	END IF//
 DELIMITER ;
 
-CALL insertStockData('AAPL','2021-03-22 12:45:00', 122.1);
-SELECT * FROM StockData;
-
+## Inserts algo settings if unique into Algorithms and generates an unique algoID for the given settings. Returns the algoID and a BOOL based on the outcome.
 DELIMITER //
 DROP PROCEDURE setAlgorithm//
 CREATE PROCEDURE setAlgorithm(aSettings TEXT)
@@ -91,9 +77,7 @@ BEGIN
     END//
 DELIMITER ;
 
-CALL setAlgorithm('blabla', 'AAPL');
-SELECT * FROM Algorithms;
-
+## Checks if a given password matches the password connected to the given email. Returns Bool.
 DELIMITER //
 DROP PROCEDURE logIn//
 CREATE PROCEDURE logIn(aEmail VARCHAR(100), aPassword VARCHAR(100))
@@ -109,56 +93,72 @@ BEGIN
     END//
 DELIMITER ;
 
-CALL logIN('ngtngt@outlook.com', 'ABC123!');
 
+## Checks if a given email exists in the Users table. Returns Bool.
 DELIMITER //
 DROP PROCEDURE emailExists//
 CREATE PROCEDURE emailExists(aEmail VARCHAR(100))
 BEGIN
 	DECLARE alreadyExists BOOL DEFAULT FALSE;
-    IF aEmail = ANY(SELECT email FROM Users) THEN
+    	IF aEmail = ANY(SELECT email FROM Users) THEN
 		SET alreadyExists = TRUE;
 	END IF;
     SELECT alreadyExists;
 END//
 DELIMITER ;
 
-CALL emailExists('ngtt@outlook.com');
 
+## Sets new password for a given resetcode that has a timestamp that has been generated the last 15 minutes. Returns True/False based on success.
 DELIMITER //
 DROP PROCEDURE changePassword//
-CREATE PROCEDURE changePassword(newPassword VARCHAR(100), aEmail VARCHAR(100))
+CREATE PROCEDURE changePassword(newPassword VARCHAR(100), aResetCode VARCHAR(10))
 BEGIN
 	DECLARE aUserID INT;
-    SET aUserID = (SELECT userID FROM Users WHERE aEmail = email);
-	IF aUserID IS NOT NULL THEN
+    DECLARE aResetTime INT;
+    DECLARE reseted BOOL DEFAULT FALSE;
+    SET aResetTime = TIMEDIFF((SELECT resetDate FROM Users WHERE aResetCode = resetCode),CURRENT_TIMESTAMP);
+    SET aResetTime = TIME_TO_SEC(aResetTIME);
+    SET aUserID = (SELECT userID FROM Users WHERE aResetCode = resetCode);
+    SELECT aResetTime;
+	IF aUserID IS NOT NULL AND aResetTime > -900 THEN
 		UPDATE Users 
-        SET password = newPassword
+        SET password = newPassword, resetDate = NULL, resetCode = NULL
         WHERE userID = aUserID;
+        SET reseted = TRUE;
 	END IF;
+    SELECT reseted;
 END//
 DELIMITER ;
 
-CALL changePassword('hej123', 'ngt@outlook.co');
 
+## Procedure that inserts a new User to the Users table, and returns a new UserID
 DELIMITER //
 DROP PROCEDURE insertUser//
 CREATE PROCEDURE insertUser(aEmail VARCHAR(100), aPassword VARCHAR(100))
 BEGIN
 	DECLARE aUserID INT;
-    SET aUserID = (SELECT userID FROM Users WHERE aEmail = email);
+    	SET aUserID = (SELECT userID FROM Users WHERE aEmail = email);
 	IF aUserID IS NULL THEN
 		INSERT INTO Users(email, password) VALUE(aEmail, aPassword);
-        SELECT userID FROM Users WHERE aEmail = email;
+        	SELECT userID FROM Users WHERE aEmail = email;
 	END IF;
 END//
 DELIMITER ;
 
-CALL insertUser('ngtngtngt@gmail.com', 'hejhej');
-SELECT * FROM Users;
-SELECT * FROM StockData;
-SELECT * FROM Algorithms;
+# Generates a resetCode and a timestamp for a given email.
+DELIMITER //
+DROP PROCEDURE setResetCode//
+CREATE PROCEDURE setResetCode(aEmail VARCHAR(100), aResetCode VARCHAR(10))
+BEGIN
+	DECLARE aUserID INT; 
+    SET aUserID = (SELECT userID FROM Users WHERE aEmail = email);
+    UPDATE Users
+    SET resetCode = aResetCode, resetDate = CURRENT_TIMESTAMP
+    WHERE aUserID=userID;
+END//
+DELIMITER ;
 
+## Procedure that inserts recommendation to the recommendation table.
 DELIMITER //
 DROP PROCEDURE insertRecommendation//
 CREATE PROCEDURE insertRecommendation(aAlgoID INT, aDate DATETIME, aRecValue VARCHAR(10), aPrice DOUBLE) 
