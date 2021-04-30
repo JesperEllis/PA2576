@@ -32,6 +32,7 @@
                 </li>
               </ul>
               <ul class="navbar-nav ml-auto">
+                <!--Checks if user is logged in. Temporary, this page will require login.-->
                 {% if current_user.is_authenticated %}
                   <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('Profile') }}">Profile</a>
@@ -44,6 +45,7 @@
               </ul>
           </nav>
           <div>
+            <!--Displays any currently queried messages.-->
             {% if category %}
               {% if category == "success" %}
                 <div class="alert alert-success" role="alert">
@@ -142,6 +144,7 @@
             </form>
           
           </div>
+          <!--Changes popover functionlity from click to hover.-->
           <script>
             $(document).ready(function(){
               $('[data-toggle="popover"]').popover(

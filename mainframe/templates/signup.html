@@ -44,6 +44,7 @@
               </ul>
         </div>     
       </nav>
+      <!--If email already exists, if variable exists is true on page page reload.-->
         {% if exists %}
               <div class="alert alert-danger" role="alert">
               <strong>This email is already registered!</strong></div>
@@ -71,6 +72,7 @@
             </div>      
         </form>
       </div>
+      <!--Page side control for matching password and confirm password.-->
       <script>
           var password = document.getElementById("password");
           var cpassword = document.getElementById("confirm_password");

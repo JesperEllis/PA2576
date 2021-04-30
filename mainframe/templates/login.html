@@ -44,6 +44,7 @@
               </ul>
         </div>     
       </nav>
+      <!--Displays any queried flashed messages.-->
       {% with messages = get_flashed_messages() %}
           {% if messages %}
             {% for msg in messages %}
@@ -52,6 +53,7 @@
           {% endif %}
         {% endwith %}
           <div>
+            <!--If user login credentials are incorrect, display message.-->
             {% if incorrect %}
               <div class="alert alert-danger" role="alert">
               <strong>Incorrect username or password!</strong></div>
