@@ -38,6 +38,7 @@
                 </li>
               </ul>
               <ul class="navbar-nav ml-auto">
+                <!--Checks if user is logged in.-->
                 {% if current_user.is_authenticated %}
                   <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('Profile') }}">Profile</a>
@@ -232,6 +233,7 @@
             </div>
 
         </div>
+        <!--Changes popover functionality from click to hover.-->
         <script>
           $(document).ready(function(){
             $('[data-toggle="popover"]').popover(
