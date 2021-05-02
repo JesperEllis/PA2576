@@ -64,27 +64,20 @@ class DatabaseInterface:
         pass
 
     def get_stockdata(self, stock_ID, nbr_of_data_points, interval):
-        "get connection, then call apropiate procedure"
         return self.connector.data_handler("getStockData", [stock_ID, nbr_of_data_points, interval])
 
     def set_stockdata(self, stock_list):
-        "get connection, then call apropiate procedure"
         for items in stock_list[0].keys():
             self.connector.data_handler("insertStockData", [
                                         stock_list[1]['2. Symbol'], items, stock_list[0][items]["4. close"]])
 
     def get_recommendations(self, stockId, interval):
-        # print(self.connector.data_handler('getRecommendation', [stockId, interval]))
-        # print(self.connector.data_handler('getRecommendation', ["AAPL", "1min"]))
-        # recommendation= [('Bullich', 122.0561, datetime.datetime(2021, 3, 18, 12, 45), 'AAPL', '15min'), ('Bearich', 120.2099, datetime.datetime(2021, 3, 19, 11, 15), 'TSLA', '20min'), ('kallek', 120.2099, datetime.datetime(2021, 3, 19, 11, 20), 'AMZN', '15min'), ('Buy', 1.0561, datetime.datetime(2021, 3, 18, 11, 43), 'AAPL', '15min'), ('Sell', 122.0561, datetime.datetime(2021, 5, 17, 12, 45), 'AAPL', '1min')]
         return self.connector.data_handler('getRecommendation', [stockId, interval])
-        # return recommendation
 
     def set_recommendation(self, algoID, recommendation):
         self.connector.data_handler('insertRecommendation', [
                                     algoID, recommendation["date"], recommendation["recAction"], recommendation["price"]])
-        print("Set_recommendation")
-        "get connection, then call apropiate procedure"
+
 
     def set_algorithm(self, settings):
         ''' Returns a list with the algoID on the first position and a bool telling if the algorithm already existed or not'''
@@ -92,20 +85,19 @@ class DatabaseInterface:
         return algoID
 
     def check_mail_existence(self, email):
-        "get connection, then call apropiate procedure"
+        '''Returns a bool'''
         x = self.connector.data_handler('emailExists', [email])
         return x[0][0]
 
     def change_password(self, email, new_password):
-        "ny metod som elion kom på"
-        "get connection, then call apropiate procedure"
+        '''returns a bool depending on succes'''
         return self.connector.data_handler('changePassword', [new_password, email])[0]
 
     def set_reset_code(self, email, code):
         self.connector.data_handler('setResetCode', [email, code])
 
     def ping_echo(self):
-        "get connection, then call apropiate procedure"
+        '''Test of connection to the database (Not implemented)'''
         pass
 
 
@@ -119,6 +111,7 @@ class DatabaseConnector:
         self.lock = threading.Lock()
 
     def data_handler(self, func, arg=None):
+        '''Ensure that a connection is active to the database and tunnel request to the database'''
         self.lock.acquire()
         if not self.connection:
             self.connection = MySQLConnection(
