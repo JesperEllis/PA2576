@@ -82,29 +82,26 @@ def recommendation():
             ticket, interval2)
         listDictonary = []
         listOfKey = ["ReAction", "Price", "Date", "StockId",
-                     "Interval"]  # Hur datan ser ut innan loop
-        # print(recommendationFromMain)
+                     "Interval"]  
+        #changes the input data from the database
         for dataInList in recommendationFromMain:
-            date = str(dataInList[2]).split(' ')[0]  # Tar ut datum
-            time = str(dataInList[2]).split(' ')[1]  # Tar ut tid
-            zipbObj = zip(listOfKey, dataInList)  # Zipar ihop listorna,
-            dictOfWords = dict(zipbObj)  # Skapar en dictionary från zip objekt
-            # Lägger till datumet sist i dictionary
+            date = str(dataInList[2]).split(' ')[0]  
+            time = str(dataInList[2]).split(' ')[1]  
+            zipbObj = zip(listOfKey, dataInList)  
+            dictOfWords = dict(zipbObj)
             dictOfWords['oDate'] = date
             dictOfWords['oTime'] = time
-            # Lägger till dictionay i en list
             listDictonary.append(dictOfWords)
 
-        print(listDictonary)
+        #print(listDictonary)
 
-        # Skickat in listan listDictonary i html
+        # Sends the list, Dictonary into html
         return render_template('recommendation.html', listDictonary=listDictonary)
     else:
         return render_template('recommendation.html')
 
 @app.route("/login", methods=['POST', 'GET'])
-def login(): #Hur når jag create_user härifrån??? #Nästa sak som jag ska fixa
-    #dbInterface.create_user()
+def login():
     """Login page, verifies login credentials via database interface and starts flask_login session."""
     if request.method == 'POST':
         email = request.form['email']
