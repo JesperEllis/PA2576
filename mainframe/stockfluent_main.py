@@ -7,7 +7,6 @@ import importlib
 import datetime
 import re
 from mailsender import MailSender
-#import fernet from cryptography
 from cryptography.fernet import Fernet
 
 
@@ -101,27 +100,32 @@ def recommendation():
 
 @app.route("/login", methods=['POST', 'GET'])
 def login(): 
-
     key = Fernet.generate_key()
     crypter = Fernet(key)
 
     if request.method == 'POST':
         email = request.form['email']
-        password = str(request.form['password'])
-        passwordCrypt = crypter.encrypt(bytes(password, encoding='utf8')) #Krypterat lösenord
-
-        myconn = mysql.connector.connect(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas") #Ansluter till databasen
-        cur = myconn.cursor() # det är en cursor, pekare av något slag
-        sql = "insert into Users (email, password) VALUES (%s, %s)" #Sätter in email och password i SQL databasen, med strängar
-        val = (email, passwordCrypt) #Det som hamnar i %s och %s
-        cur.execute(sql, val) #Execute, slår ihop SQL och val och får en komplett query
-        myconn.commit() # lägger in det i databasen
-        myconn.close() #stänger databasen
-
-        deCryptPassword = crypter.decrypt(passwordCrypt) #Omvandlar krypteringen till det riktiga lösenordet
+        password = request.form['password']
+        passwordCryptT = crypter.encrypt(bytes(password, encoding='utf8'))
+        print(passwordCryptT)
+        deCryptPassword = crypter.decrypt(password)
         print(deCryptPassword)
 
-        db_result = dbInterface.check_login(email, password)
+
+        """
+        print("1")
+        print(password)
+        deCryptPassword = crypter.decrypt(password) #Omvandlar krypteringen till det riktiga lösenordet
+        print(deCryptPassword)
+        print("2")"""
+        #print("hej")
+        #print(dbInterface.get_password(email))
+        #print(dbInterface.create_user(email))
+        #db_result = dbInterface.check_login(email, password)
+        #print("WWWWWWWWWWWWWWWWWWWWWW")
+        #print(db_result)
+        db_result = dbInterface.check_login(email, passwordCryptT)
+
         if db_result[0]:
             user = User(email, id=db_result[1])
             user.set_authentication(True)
@@ -169,17 +173,26 @@ def new_password():
 
 @app.route("/signup", methods=['POST', 'GET'])
 def signup():
+    key = Fernet.generate_key()
+    crypter = Fernet(key)
 
     if request.method == "POST":
         email = request.form['email']
         password = request.form['password']
-        #kryptering
+        passwordCrypt = crypter.encrypt(bytes(password, encoding='utf8')) #Krypterat lösenord
+        print("3")
+        print(passwordCrypt)
+        print("4")
+        
+        deCryptPassword = crypter.decrypt(passwordCrypt) #Omvandlar krypteringen till det riktiga lösenordet
+        print(deCryptPassword)
 
         if dbInterface.check_mail_existence(email):
             return render_template("signup.html", exists = True)
         
         #stores user in DB
-        dbInterface.create_user(email, password)
+        dbInterface.create_user(email, passwordCrypt)
+        #return render_template("login.html")
         return render_template("login.html")
         
     else:

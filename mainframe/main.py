@@ -44,15 +44,25 @@ class DatabaseInterface:
     def __init__(self, dbconnector):
         self.connector = dbconnector
 
-    def create_user(self, email, password):
+    #def create_user(self, email, password):
+    def create_user(self, email, passwordCrypt):
         '''If the email doesn't already exist, returns the new users userID. Else returns None.'''
-        return self.connector.data_handler("insertUser", [email, password])
+        #return self.connector.data_handler("insertUser", [email, password])
+        return self.connector.data_handler("insertUser", [email, passwordCrypt])
+    
+    #def get_password(self, email):
+        #sql = "SELECT password FROM Users WHERE (email)= email"
+        #print(sql)
+        #return self.connector.data_handler("getPassword", [email])
 
-    def check_login(self, username, password):
+    def check_login(self, username, passwordCryptT):
+    #def check_login(self, username, deCryptPassword):    
         "get connection, then call apropiate procedure"
-        x = self.connector.data_handler("logIn", [username, password])
+        x = self.connector.data_handler("logIn", [username, passwordCryptT])
+        #x = self.connector.data_handler("logIn", [username, deCryptPassword])
+        print(x[0])
         a = [x[0][0], x[1][0]]
-        print(a)
+        
         return a
 
     def get_user_settings(self, username):
@@ -121,9 +131,9 @@ class DatabaseConnector:
     def data_handler(self, func, arg=None):
         self.lock.acquire()
         if not self.connection:
-            self.connection = MySQLConnection(
-                host='localhost', database='StockFluent', user='root')
-        cnx = self.connection.cursor(dictionary=True)
+            self.connection = MySQLConnection(host = "localhost", user = "root",passwd = "pass", database = "ProjektDatabas")
+        #host='localhost', database='StockFluent', user='root')
+        cnx = self.connection.cursor(dictionary=False)
         if arg == None:
             cnx.callproc(func)
 
